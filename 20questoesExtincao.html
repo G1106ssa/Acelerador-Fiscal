@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz: Decadência e Prescrição Tributária | SEFAZ GO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        /* Header - Identidade Acelerador Fiscal */
+        .quiz-header {
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 25px 40px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .quiz-header h1 {
+            font-size: 1.4em;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .quiz-header p {
+            opacity: 0.85;
+            font-size: 0.85em;
+        }
+
+        .quiz-progress {
+            background: rgba(255, 255, 255, 0.2);
+            height: 4px;
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .quiz-progress-bar {
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        /* Container Principal */
+        .quiz-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Card da Questão - Minimalista */
+        .question-card {
+            background: white;
+            border-radius: 12px;
+            padding: 35px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: #1e3c72;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 0.85em;
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            line-height: 1.7;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .question-meta {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            padding: 10px 0;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        /* Opções - Minimalistas */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .option:hover:not(.disabled) {
+            background: #e9ecef;
+            border-color: #1e3c72;
+            transform: translateX(5px);
+        }
+
+        .option-letter {
+            background: #1e3c72;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+            font-size: 0.9em;
+        }
+
+        .option-text {
+            flex: 1;
+            color: #2c3e50;
+            line-height: 1.5;
+        }
+
+        /* Estados das respostas */
+        .option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .option.correct .option-letter {
+            background: #28a745;
+        }
+
+        .option.wrong {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .option.wrong .option-letter {
+            background: #dc3545;
+        }
+
+        .option.disabled {
+            cursor: not-allowed;
+        }
+
+        /* Feedback */
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Controles - Minimalistas */
+        .quiz-controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .btn-secondary {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #dee2e6;
+        }
+
+        .btn-primary {
+            background: #1e3c72;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2a5298;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Resultado Final - Minimalista */
+        .score-display {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .score-display h2 {
+            color: #1e3c72;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .score-display p {
+            font-size: 1.1em;
+            color: #495057;
+            margin: 15px 0;
+        }
+
+        .score-percentage {
+            font-size: 3.5em;
+            font-weight: bold;
+            color: #1e3c72;
+            margin: 30px 0;
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .quiz-header {
+                padding: 20px;
+            }
+
+            .quiz-header h1 {
+                font-size: 1.2em;
+            }
+
+            .question-card {
+                padding: 25px 20px;
+            }
+
+            .quiz-controls {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="quiz-header">
+        <h1>🎯 Quiz: Decadência e Prescrição Tributária</h1>
+        <p id="questionCounter">Questão 1 de 20</p>
+        <div class="quiz-progress">
+            <div class="quiz-progress-bar" id="progressBar" style="width: 5%"></div>
+        </div>
+    </div>
+
+    <!-- Container -->
+    <div class="quiz-container">
+        <div id="quizBody"></div>
+
+        <div class="quiz-controls">
+            <button class="btn btn-secondary" id="prevBtn" onclick="previousQuestion()">← Anterior</button>
+            <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>Próxima →</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                id: 1,
+                text: "A empresa Beta confessou débitos de ISS dos anos de 2015 e 2016 para aderir a um parcelamento oferecido pelo Município em 2023. Não tendo pago as parcelas, sofreu execução fiscal ajuizada em 2024. A empresa alegou decadência do direito de o Município constituir esses créditos.",
+                meta: "Ano: 2024 | Banca: FCC | Órgão: TJ-RR | Cargo: Juiz",
+                options: [
+                    "A confissão da dívida supre a falta de lançamento formal.",
+                    "A decadência só se consuma com ato expresso da autoridade administrativa.",
+                    "A adesão ao parcelamento interrompe o prazo decadencial.",
+                    "A decadência extingue o crédito tributário.",
+                    "A declaração do contribuinte constitui o crédito tributário."
+                ],
+                correct: 3
+            },
+            {
+                id: 2,
+                text: "Sobre a diferença entre prescrição e decadência no Direito Tributário, considere o caso em que o Município perdeu o direito de constituir formalmente o crédito tributário de IPTU após 5 anos do fato gerador.",
+                meta: "Ano: 2023 | Banca: VUNESP | Órgão: Prefeitura de Suzano | Cargo: Procurador",
+                options: [
+                    "A prescrição só se aplica a impostos.",
+                    "A decadência impede o lançamento após 5 anos do fato gerador.",
+                    "A prescrição ocorre em 5 anos após o lançamento.",
+                    "Ambos os institutos são interrompidos por Ação Direta de Inconstitucionalidade."
+                ],
+                correct: 1
+            },
+            {
+                id: 3,
+                text: "Em se tratando de tributo sujeito a lançamento por homologação, salvo na hipótese de dolo, fraude ou simulação, o prazo decadencial para a Fazenda Pública constituir o crédito tributário conta-se",
+                meta: "Ano: 2022 | Banca: FCC | Órgão: SEFAZ-PE | Cargo: Auditor Fiscal",
+                options: [
+                    "da data do pagamento antecipado.",
+                    "da data da ocorrência do fato gerador.",
+                    "do conhecimento pelo sujeito ativo da ocorrência do fato gerador.",
+                    "do primeiro dia do exercício seguinte àquele em que o lançamento poderia ter sido efetuado.",
+                    "do primeiro dia do exercício seguinte àquele em que o pagamento foi efetuado."
+                ],
+                correct: 1
+            },
+            {
+                id: 4,
+                text: "A notificação do lançamento através de auto de infração cessa a contagem do prazo decadencial para a constituição do crédito tributário.",
+                meta: "Ano: 2021 | Banca: CESPE | Órgão: TCE-RJ | Cargo: Auditor",
+                options: [
+                    "Certo",
+                    "Errado"
+                ],
+                correct: 1
+            },
+            {
+                id: 5,
+                text: "A prescrição e a decadência se aplicam para o procedimento administrativo relativo a:",
+                meta: "Ano: 2021 | Banca: FGV | Órgão: TCE-AM | Cargo: Auditor",
+                options: [
+                    "Revisão do crédito tributário.",
+                    "Extinção do crédito tributário.",
+                    "Suspensão da exigibilidade do crédito tributário.",
+                    "Pagamento do crédito tributário."
+                ],
+                correct: 1
+            },
+            {
+                id: 6,
+                text: "Sobre os créditos de foro, laudêmio e taxa de ocupação de imóveis da União, e considerando o Tema 1142 do STJ:",
+                meta: "Ano: 2020 | Banca: CESPE | Órgão: MPE-CE | Cargo: Promotor",
+                options: [
+                    "A Taxa de Ocupação é receita de natureza tributária.",
+                    "O foro é receita patrimonial e deve ser aplicado em obras no local do imóvel.",
+                    "O prazo decadencial é decenal, limitado a 5 anos para período anterior à inscrição em dívida ativa.",
+                    "Os créditos estão submetidos aos prazos de decadência e prescrição de 5 anos, conforme Lei 9.636/1998 e Tema 1142/STJ.",
+                    "O laudêmio é taxa paga previamente, aplicando-se o CTN por analogia."
+                ],
+                correct: 3
+            },
+            {
+                id: 7,
+                text: "O Código Tributário Nacional prescreve que o lançamento tributário:",
+                meta: "Ano: 2020 | Banca: FCC | Órgão: SEFAZ-BA | Cargo: Auditor Fiscal",
+                options: [
+                    "É ato privativo da Administração Pública ou pessoa jurídica de direito público.",
+                    "A homologação é ato da Administração Pública e do sujeito passivo.",
+                    "O sujeito passivo pode constituir o crédito tributário.",
+                    "O lançamento misto é constituído com informações da Administração, sujeito passivo ou terceiros.",
+                    "No autolançamento, a decadência inicia no primeiro dia do exercício seguinte ao fato gerador."
+                ],
+                correct: 3
+            },
+            {
+                id: 8,
+                text: "Nos termos do art. 195, parágrafo único, do CTN, o período em que os contribuintes devem conservar os livros obrigatórios está atrelado ao prazo de:",
+                meta: "Ano: 2020 | Banca: FCC | Órgão: TJ-MA | Cargo: Juiz",
+                options: [
+                    "Decadência dos créditos tributários.",
+                    "Decadência dos débitos inscritos em dívida ativa.",
+                    "Prescrição do ajuizamento de mandado de segurança.",
+                    "Prescrição dos créditos tributários."
+                ],
+                correct: 3
+            },
+            {
+                id: 9,
+                text: "Nos tributos sujeitos a lançamento por homologação, se a lei não fixar prazo a homologação, será ele de:",
+                meta: "Ano: 2019 | Banca: VUNESP | Órgão: Prefeitura de Guarulhos | Cargo: Procurador",
+                options: [
+                    "2 anos, a contar da data da ocorrência do fato gerador.",
+                    "5 anos, a contar da data da ocorrência do fato gerador.",
+                    "3 anos, a contar da data da ocorrência do fato gerador.",
+                    "10 anos, a contar da data da homologação."
+                ],
+                correct: 1
+            },
+            {
+                id: 10,
+                text: "A Lei 8.212/91, em seus artigos 45 e 46, estabeleceu prazos de prescrição e decadência para contribuições previdenciárias. Um advogado alega que tais dispositivos permanecem aplicáveis. Sobre essa discussão:",
+                meta: "Ano: 2019 | Banca: FCC | Órgão: SEFAZ-SC | Cargo: Auditor Fiscal",
+                options: [
+                    "O advogado está correto.",
+                    "A Lei 8.212/91 pode disciplinar os prazos, desde que não contrarie o CTN.",
+                    "Os artigos 45 e 46 foram declarados inconstitucionais pelo STF.",
+                    "Contribuições previdenciárias não são tributárias.",
+                    "O CTN não disciplina contribuições previdenciárias."
+                ],
+                correct: 2
+            },
+            {
+                id: 11,
+                text: "Sobre a normatização de prescrição e decadência tributária, segundo posicionamento do STF:",
+                meta: "Ano: 2019 | Banca: CESPE | Órgão: PGE-PE | Cargo: Procurador",
+                options: [
+                    "Depende da espécie tributária envolvida.",
+                    "Ambas só podem ser disciplinadas por lei complementar.",
+                    "Ambas podem ser disciplinadas por lei complementar ou lei ordinária.",
+                    "Decadência só por lei complementar; prescrição por lei ordinária.",
+                    "Prescrição só por lei complementar; decadência por lei ordinária."
+                ],
+                correct: 1
+            },
+            {
+                id: 12,
+                text: "O Município notificou o contribuinte em 15/04/2020 sobre contribuição de melhoria, com prazo de pagamento até 14/05/2020. O prazo para cobrança do crédito é:",
+                meta: "Ano: 2019 | Banca: VUNESP | Órgão: Prefeitura de Ribeirão Preto | Cargo: Procurador",
+                options: [
+                    "Decadencial, contado de 15/04/2020.",
+                    "Prescricional, contado de 01/01/2021.",
+                    "Prescricional, contado de 16/04/2020.",
+                    "Decadencial, contado de 15/05/2020.",
+                    "Prescricional, contado de 15/05/2020."
+                ],
+                correct: 4
+            },
+            {
+                id: 13,
+                text: "Segundo as regras gerais do CTN, o prazo legal para a Fazenda Pública exercer a exigibilidade do crédito tributário é de:",
+                meta: "Ano: 2019 | Banca: FCC | Órgão: SEFAZ-AP | Cargo: Auditor Fiscal",
+                options: [
+                    "5 anos, decadencial, após o lançamento.",
+                    "5 anos, prescricional, após o lançamento.",
+                    "5 anos, prescricional, após o fato gerador.",
+                    "2 anos, decadencial, após o fato gerador.",
+                    "2 anos, prescricional, após o lançamento."
+                ],
+                correct: 1
+            },
+            {
+                id: 14,
+                text: "O prazo decadencial para a Fazenda Pública constituir o crédito tributário é de:",
+                meta: "Ano: 2018 | Banca: FCC | Órgão: ALESE | Cargo: Procurador",
+                options: [
+                    "4 anos.",
+                    "3 anos.",
+                    "2 anos.",
+                    "6 anos.",
+                    "5 anos."
+                ],
+                correct: 4
+            },
+            {
+                id: 15,
+                text: "Em 2018, empresa pagou ISS antecipadamente, mas omitiu parte dos valores. Em 2024, o Fisco constitui o crédito sobre a parte não paga. Não houve dolo ou fraude.",
+                meta: "Ano: 2019 | Banca: VUNESP | Órgão: Prefeitura de São Paulo | Cargo: Auditor Fiscal",
+                options: [
+                    "Todos os créditos extintos por decadência (2018-2023).",
+                    "Crédito não pago pode ser constituído (decadência conta de 01/01/2019).",
+                    "Crédito pago pode ser revisado (extinção condicional).",
+                    "Crédito pago pode ser revisado (decadência inicia com homologação).",
+                    "Crédito não pago extinto em 2023 (decadência do fato gerador)."
+                ],
+                correct: 1
+            },
+            {
+                id: 16,
+                text: "Contribuinte apresentou declaração de IRPF em 31/05/2024, não tendo sido homologada. O termo final do prazo decadencial é:",
+                meta: "Ano: 2018 | Banca: FCC | Órgão: SEFAZ-GO | Cargo: Auditor Fiscal",
+                options: [
+                    "01/01/2030.",
+                    "31/05/2029.",
+                    "31/05/2030.",
+                    "01/01/2029."
+                ],
+                correct: 0
+            },
+            {
+                id: 17,
+                text: "O prazo decadencial para lançamento de ofício do IPVA (Estado) e IPTU (Município) do ano de 2023 inicia e termina em:",
+                meta: "Ano: 2018 | Banca: CESPE | Órgão: SEFAZ-RS | Cargo: Auditor Fiscal",
+                options: [
+                    "01/01/2023 a 31/12/2028.",
+                    "01/01/2024 a 31/12/2029.",
+                    "01/01/2024 a 31/12/2028.",
+                    "01/01/2023 a 31/12/2029."
+                ],
+                correct: 2
+            },
+            {
+                id: 18,
+                text: "O prazo para a Fazenda Pública lançar tributo sujeito a lançamento por homologação é de:",
+                meta: "Ano: 2017 | Banca: FCC | Órgão: SEFAZ-MA | Cargo: Auditor Fiscal",
+                options: [
+                    "2 anos, a contar do fato gerador.",
+                    "5 anos, a contar da constituição do crédito.",
+                    "3 anos, a contar da notificação.",
+                    "10 anos, a contar da homologação.",
+                    "5 anos, a contar do fato gerador."
+                ],
+                correct: 4
+            },
+            {
+                id: 19,
+                text: "A prescrição da ação de cobrança do crédito tributário (5 anos) se interrompe por:",
+                meta: "Ano: 2017 | Banca: VUNESP | Órgão: Prefeitura de Bauru | Cargo: Procurador",
+                options: [
+                    "Despacho do juiz que ordena a citação em execução fiscal.",
+                    "Protesto judicial.",
+                    "Qualquer ato judicial que não constitua em mora.",
+                    "Qualquer ato extrajudicial de reconhecimento."
+                ],
+                correct: 0
+            },
+            {
+                id: 20,
+                text: "Empresa comete fraude (falsificação) para pagar menos ICMS. Saída da mercadoria: 05/04/2023. Pagamento parcial: 15/05/2023. Prazo do Fisco para constituir o crédito:",
+                meta: "Ano: 2016 | Banca: FCC | Órgão: SEFAZ-MT | Cargo: Auditor Fiscal",
+                options: [
+                    "5 anos, a contar da saída (houve pagamento parcial).",
+                    "5 anos, a contar de 01/01/2024 (havendo fraude, inicia no exercício seguinte).",
+                    "5 anos, a contar do pagamento (houve pagamento parcial).",
+                    "5 anos, a contar de 01/01/2024 (houve pagamento parcial).",
+                    "10 anos, a contar do fato gerador (é por homologação)."
+                ],
+                correct: 1
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = [];
+
+        function loadQuestion() {
+            const question = questions[currentQuestion];
+            const quizBody = document.getElementById('quizBody');
+
+            const letters = ['A', 'B', 'C', 'D', 'E'];
+            const optionsHTML = question.options.map((option, index) => `
+                <div class="option" onclick="selectAnswer(${index})" id="option-${index}">
+                    <div class="option-letter">${letters[index]}</div>
+                    <div class="option-text">${option}</div>
+                </div>
+            `).join('');
+
+            quizBody.innerHTML = `
+                <div class="question-card">
+                    <span class="question-number">Questão ${question.id}</span>
+                    <div class="question-text">${question.text}</div>
+                    <div class="question-meta">${question.meta}</div>
+                    <div class="options-container">
+                        ${optionsHTML}
+                    </div>
+                    <div class="feedback" id="feedback"></div>
+                </div>
+            `;
+
+            updateProgress();
+            updateButtons();
+        }
+
+        function selectAnswer(index) {
+            if (answered[currentQuestion]) return;
+
+            const question = questions[currentQuestion];
+            const feedback = document.getElementById('feedback');
+            const options = document.querySelectorAll('.option');
+
+            options.forEach(opt => opt.classList.add('disabled'));
+
+            if (index === question.correct) {
+                options[index].classList.add('correct');
+                feedback.className = 'feedback show success';
+                feedback.innerHTML = '✅ Resposta Correta!';
+                score++;
+            } else {
+                options[index].classList.add('wrong');
+                options[question.correct].classList.add('correct');
+                const letters = ['A', 'B', 'C', 'D', 'E'];
+                feedback.className = 'feedback show error';
+                feedback.innerHTML = `❌ Resposta Incorreta! A resposta correta é a alternativa ${letters[question.correct]}.`;
+            }
+
+            answered[currentQuestion] = true;
+            updateButtons();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                showFinalScore();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('questionCounter').textContent = `Questão ${currentQuestion + 1} de ${questions.length}`;
+        }
+
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentQuestion === 0;
+            document.getElementById('nextBtn').disabled = !answered[currentQuestion];
+
+            if (currentQuestion === questions.length - 1 && answered[currentQuestion]) {
+                document.getElementById('nextBtn').textContent = 'Ver Resultado →';
+            } else {
+                document.getElementById('nextBtn').textContent = 'Próxima →';
+            }
+        }
+
+        function showFinalScore() {
+            const percentage = Math.round((score / questions.length) * 100);
+            const quizBody = document.getElementById('quizBody');
+
+            let message = '';
+            if (percentage >= 70) {
+                message = '🎉 Excelente! Você está preparado!';
+            } else if (percentage >= 50) {
+                message = '👍 Bom trabalho! Continue estudando!';
+            } else {
+                message = '📚 Continue estudando! Você vai conseguir!';
+            }
+
+            quizBody.innerHTML = `
+                <div class="question-card score-display">
+                    <h2>${message}</h2>
+                    <p>Você acertou <strong>${score}</strong> de <strong>${questions.length}</strong> questões</p>
+                    <div class="score-percentage">${percentage}%</div>
+                    <button class="btn btn-primary" onclick="restartQuiz()">🔄 Refazer Quiz</button>
+                </div>
+            `;
+
+            document.querySelector('.quiz-controls').style.display = 'none';
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            answered = [];
+            document.querySelector('.quiz-controls').style.display = 'flex';
+            loadQuestion();
+        }
+
+        // Inicializar quiz
+        loadQuestion();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESTUDOS AUDITOR FISCAL - SEFAZ GO 2026</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <button class="menu-toggle" onclick="toggleSidebar()" title="Menu">☰</button>
+
+            <div class="sidebar-header">
+                <button class="menu-home-btn" onclick="goToHome()">🏠 Início</button>
+                <div class="sidebar-title" style="margin-top: 15px;">📚 CONTEÚDOS</div>
+                <div class="sidebar-subtitle">SEFAZ GO 2026</div>
+            </div>
+
+            <!-- FILTROS DO MENU -->
+            <div class="menu-filters">
+                <span class="filter-label">Filtrar por tipo</span>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filtrarMaterias('todos', this)">Todos</button>
+                    <button class="filter-btn" onclick="filtrarMaterias('basico', this)">Básicos</button>
+                    <button class="filter-btn" onclick="filtrarMaterias('especifico', this)">Específicos</button>
+                </div>
+            </div>
+
+            <div class="materias-list" id="materias-list"></div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content" id="main-content">
+            <!-- Header -->
+            <header class="header" id="header">
+                <div class="header-top">
+                    <button class="toggle-header-btn" onclick="toggleHeader()" title="Minimizar/Expandir">▲</button>
+                    <div class="header-title-section">
+                        <h1>🎯 ACELERADOR FISCAL</h1>
+                        <div class="header-subtitle">SEFAZ GO 2026 | Auditor-Fiscal da Receita Estadual</div>
+                    </div>
+                </div>
+
+                <div class="header-stats" id="header-stats">
+                    <div class="stat-box">
+                        <div class="stat-number" id="total-topicos">0</div>
+                        <div class="stat-label">Tópicos</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="concluidos">0</div>
+                        <div class="stat-label">Concluídos</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="percentual">0%</div>
+                        <div class="stat-label">Progresso</div>
+                    </div>
+                    <div class="progress-box">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progress-bar" style="width: 0%">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="content-area" id="content-area">
+                <div id="dynamic-content">
+                    <div class="welcome-message">
+                        <h2>Selecione uma matéria no menu lateral para começar</h2>
+                        <p style="margin-top: 20px;">Clique no ☰ para abrir o menu</p>
+                    </div>
+                </div>
+
+                <footer class="app-footer">
+                    <div class="footer-content">
+                        <div class="footer-section">
+                            <h3>🎯 ACELERADOR FISCAL</h3>
+                            <p>Plataforma completa de estudos para o concurso de Auditor-Fiscal da Receita Estadual de
+                                Goiás (SEFAZ GO 2026).</p>
+                            <p style="margin-top: 15px; font-size: 0.85em; opacity: 0.7;">Organize seus estudos,
+                                acompanhe seu progresso e conquiste sua aprovação!</p>
+                        </div>
+
+                        <div class="footer-section">
+                            <h3>📚 Recursos</h3>
+                            <ul>
+                                <li>Controle de Matérias</li>
+                                <li>Sistema de Questões</li>
+                                <li>Acompanhamento de Progresso</li>
+                                <li>Filtros Inteligentes</li>
+                                <li>Análise FCC</li>
+                            </ul>
+                        </div>
+
+                        <div class="footer-section">
+                            <h3>ℹ️ Sobre</h3>
+                            <ul>
+                                <li>SEFAZ GO 2026</li>
+                                <li>Matérias Básicas</li>
+                                <li>Matérias Específicas</li>
+                                <li>Legislação Estadual</li>
+                                <li>Realidade de Goiás</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="footer-bottom">
+                        <p>&copy; 2026 Acelerador Fiscal - SEFAZ GO. Todos os direitos reservados.</p>
+                        <p style="margin-top: 5px; font-size: 0.85em;">Desenvolvido para auxiliar candidatos ao concurso
+                            de Auditor-Fiscal da Receita Estadual</p>
+                    </div>
+                </footer>
+            </div>
+
+        </main>
+    </div>
+
+    <div class="save-indicator" id="save-indicator">💾 Salvo!</div>
+
+    <!-- Modal de Questões -->
+    <div class="modal-overlay" id="questoes-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">Questões</div>
+                <button class="modal-close-btn" onclick="fecharModal()">×</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Conteúdo será injetado aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+
+</html>

@@ -35,9 +35,52 @@
             font-weight: 600;
         }
 
+        .quiz-header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            gap: 20px;
+        }
+
         .quiz-header p {
             opacity: 0.85;
             font-size: 0.85em;
+            margin: 0;
+        }
+
+        .quiz-stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            opacity: 0.9;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85em;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .stat-correct {
+            color: #4CAF50;
+        }
+
+        .stat-wrong {
+            color: #ff6b6b;
+        }
+
+        .stat-percentage {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-weight: 700;
         }
 
         .quiz-progress {
@@ -266,6 +309,20 @@
                 font-size: 1.2em;
             }
 
+            .quiz-header-info {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .quiz-stats {
+                gap: 15px;
+            }
+
+            .stat-item {
+                font-size: 0.8em;
+            }
+
             .question-card {
                 padding: 25px 20px;
             }
@@ -285,7 +342,20 @@
     <!-- Header -->
     <div class="quiz-header">
         <h1>🎯 Quiz: Decadência e Prescrição Tributária</h1>
-        <p id="questionCounter">Questão 1 de 20</p>
+        <div class="quiz-header-info">
+            <p id="questionCounter">Questão 1 de 20</p>
+            <div class="quiz-stats">
+                <div class="stat-item">
+                    <span>✅</span>
+                    <span class="stat-value stat-correct" id="correctCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>❌</span>
+                    <span class="stat-value stat-wrong" id="wrongCount">0</span>
+                </div>
+                <div class="stat-item stat-percentage" id="percentageDisplay">0%</div>
+            </div>
+        </div>
         <div class="quiz-progress">
             <div class="quiz-progress-bar" id="progressBar" style="width: 5%"></div>
         </div>
@@ -557,6 +627,7 @@
 
         let currentQuestion = 0;
         let score = 0;
+        let wrongAnswers = 0;
         let answered = [];
 
         function loadQuestion() {
@@ -607,10 +678,12 @@
                 const letters = ['A', 'B', 'C', 'D', 'E'];
                 feedback.className = 'feedback show error';
                 feedback.innerHTML = `❌ Resposta Incorreta! A resposta correta é a alternativa ${letters[question.correct]}.`;
+                wrongAnswers++;
             }
 
             answered[currentQuestion] = true;
             updateButtons();
+            updateStats();
         }
 
         function nextQuestion() {
@@ -633,6 +706,15 @@
             const progress = ((currentQuestion + 1) / questions.length) * 100;
             document.getElementById('progressBar').style.width = progress + '%';
             document.getElementById('questionCounter').textContent = `Questão ${currentQuestion + 1} de ${questions.length}`;
+        }
+
+        function updateStats() {
+            const totalAnswered = score + wrongAnswers;
+            const percentage = totalAnswered > 0 ? Math.round((score / totalAnswered) * 100) : 0;
+            
+            document.getElementById('correctCount').textContent = score;
+            document.getElementById('wrongCount').textContent = wrongAnswers;
+            document.getElementById('percentageDisplay').textContent = percentage + '%';
         }
 
         function updateButtons() {
@@ -674,8 +756,10 @@
         function restartQuiz() {
             currentQuestion = 0;
             score = 0;
+            wrongAnswers = 0;
             answered = [];
             document.querySelector('.quiz-controls').style.display = 'flex';
+            updateStats();
             loadQuestion();
         }
 

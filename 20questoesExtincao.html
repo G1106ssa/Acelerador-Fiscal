@@ -299,6 +299,222 @@
             margin: 30px 0;
         }
 
+        /* Histórico de Desempenho */
+        .history-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .history-title {
+            font-size: 1.3em;
+            color: #1e3c72;
+            font-weight: 600;
+        }
+
+        .history-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: #1e3c72;
+            transform: translateY(-3px);
+        }
+
+        .stat-card.best {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        }
+
+        .stat-card-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 5px;
+        }
+
+        .stat-card-label {
+            font-size: 0.85em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .history-list {
+            margin-top: 25px;
+        }
+
+        .history-list-title {
+            font-size: 1.1em;
+            color: #495057;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #1e3c72;
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .history-item.best-score {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-left-color: #ffa726;
+        }
+
+        .history-date {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .history-score {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+
+        .history-badge {
+            font-size: 1.2em;
+            margin-left: 10px;
+        }
+
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .chart-title {
+            font-size: 1.1em;
+            color: #495057;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .chart {
+            position: relative;
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            gap: 10px;
+            padding: 20px 0;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            min-height: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .chart-bar:hover {
+            opacity: 0.8;
+            transform: translateY(-5px);
+        }
+
+        .chart-bar.best {
+            background: linear-gradient(180deg, #ffa726 0%, #ff9800 100%);
+        }
+
+        .chart-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75em;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .chart-label {
+            text-align: center;
+            font-size: 0.7em;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-history-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .btn-clear {
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-clear:hover {
+            background: #c82333;
+        }
+
+        .btn-view-history {
+            background: #1e3c72;
+            color: white;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-top: 15px;
+        }
+
+        .btn-view-history:hover {
+            background: #2a5298;
+        }
+
         /* Responsivo */
         @media (max-width: 768px) {
             .quiz-header {
@@ -333,6 +549,25 @@
 
             .btn {
                 width: 100%;
+            }
+
+            .history-stats {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .history-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .chart {
+                height: 150px;
+            }
+
+            .history-section {
+                padding: 20px;
             }
         }
     </style>
@@ -732,6 +967,9 @@
             const percentage = Math.round((score / questions.length) * 100);
             const quizBody = document.getElementById('quizBody');
 
+            // Salvar resultado no histórico
+            saveToHistory(score, questions.length, percentage);
+
             let message = '';
             if (percentage >= 70) {
                 message = '🎉 Excelente! Você está preparado!';
@@ -747,6 +985,150 @@
                     <p>Você acertou <strong>${score}</strong> de <strong>${questions.length}</strong> questões</p>
                     <div class="score-percentage">${percentage}%</div>
                     <button class="btn btn-primary" onclick="restartQuiz()">🔄 Refazer Quiz</button>
+                    <button class="btn btn-view-history" onclick="showHistory()">📊 Ver Histórico</button>
+                </div>
+            `;
+
+            document.querySelector('.quiz-controls').style.display = 'none';
+        }
+
+        // ========== SISTEMA DE HISTÓRICO ==========
+
+        function saveToHistory(correct, total, percentage) {
+            const history = getHistory();
+            const attempt = {
+                date: new Date().toISOString(),
+                correct: correct,
+                total: total,
+                percentage: percentage,
+                timestamp: Date.now()
+            };
+            
+            history.push(attempt);
+            localStorage.setItem('quizHistory', JSON.stringify(history));
+        }
+
+        function getHistory() {
+            const stored = localStorage.getItem('quizHistory');
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function clearHistory() {
+            if (confirm('Tem certeza que deseja limpar todo o histórico? Esta ação não pode ser desfeita.')) {
+                localStorage.removeItem('quizHistory');
+                showHistory();
+            }
+        }
+
+        function showHistory() {
+            const history = getHistory();
+            const quizBody = document.getElementById('quizBody');
+
+            if (history.length === 0) {
+                quizBody.innerHTML = `
+                    <div class="history-section">
+                        <div class="empty-history">
+                            <div class="empty-history-icon">📊</div>
+                            <h3>Nenhum histórico ainda</h3>
+                            <p>Complete o quiz para começar a acompanhar seu progresso!</p>
+                            <button class="btn btn-primary" onclick="restartQuiz()" style="margin-top: 20px;">Iniciar Quiz</button>
+                        </div>
+                    </div>
+                `;
+                document.querySelector('.quiz-controls').style.display = 'none';
+                return;
+            }
+
+            // Calcular estatísticas
+            const bestScore = Math.max(...history.map(h => h.percentage));
+            const avgScore = Math.round(history.reduce((sum, h) => sum + h.percentage, 0) / history.length);
+            const totalAttempts = history.length;
+
+            // Ordenar histórico (mais recente primeiro)
+            const sortedHistory = [...history].sort((a, b) => b.timestamp - a.timestamp);
+
+            // Pegar últimas 10 tentativas
+            const recentHistory = sortedHistory.slice(0, 10);
+
+            // Gerar lista de histórico
+            const historyHTML = recentHistory.map((attempt, index) => {
+                const date = new Date(attempt.date);
+                const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const isBest = attempt.percentage === bestScore;
+                
+                return `
+                    <div class="history-item ${isBest ? 'best-score' : ''}">
+                        <span class="history-date">${dateStr} às ${timeStr}</span>
+                        <span>
+                            <span class="history-score">${attempt.percentage}% (${attempt.correct}/${attempt.total})</span>
+                            ${isBest ? '<span class="history-badge">🏆</span>' : ''}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+
+            // Gerar gráfico (últimas 10 tentativas)
+            const chartData = recentHistory.slice(0, 10).reverse();
+            const maxPercentage = 100;
+            
+            const chartHTML = chartData.map((attempt, index) => {
+                const height = (attempt.percentage / maxPercentage) * 100;
+                const isBest = attempt.percentage === bestScore;
+                const date = new Date(attempt.date);
+                const label = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                
+                return `
+                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                        <div class="chart-bar ${isBest ? 'best' : ''}" 
+                             style="height: ${height}%"
+                             title="${attempt.percentage}% - ${label}">
+                            <span class="chart-value">${attempt.percentage}%</span>
+                        </div>
+                        <div class="chart-label">${label}</div>
+                    </div>
+                `;
+            }).join('');
+
+            quizBody.innerHTML = `
+                <div class="history-section">
+                    <div class="history-header">
+                        <h2 class="history-title">📊 Seu Desempenho</h2>
+                        <button class="btn-clear" onclick="clearHistory()">🗑️ Limpar Histórico</button>
+                    </div>
+
+                    <div class="history-stats">
+                        <div class="stat-card best">
+                            <div class="stat-card-value">🏆 ${bestScore}%</div>
+                            <div class="stat-card-label">Melhor Pontuação</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-value">${avgScore}%</div>
+                            <div class="stat-card-label">Média Geral</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-value">${totalAttempts}</div>
+                            <div class="stat-card-label">Tentativas</div>
+                        </div>
+                    </div>
+
+                    ${chartData.length > 1 ? `
+                        <div class="chart-container">
+                            <h3 class="chart-title">📈 Evolução (Últimas ${chartData.length} tentativas)</h3>
+                            <div class="chart">
+                                ${chartHTML}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="history-list">
+                        <h3 class="history-list-title">📝 Últimas Tentativas</h3>
+                        ${historyHTML}
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button class="btn btn-primary" onclick="restartQuiz()">🔄 Fazer Novo Quiz</button>
+                    </div>
                 </div>
             `;
 

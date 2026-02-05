@@ -2196,3 +2196,103 @@
                 padding: 10px;
             }
         }
+/* ============================================
+   SEÇÃO DE QUIZZES NO MENU
+   ============================================ */
+.quiz-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.quiz-section-title {
+    color: #fff;
+    font-size: 0.85em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 0 15px;
+    margin-bottom: 15px;
+    opacity: 0.9;
+    text-transform: uppercase;
+}
+
+.quiz-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.quiz-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateX(5px);
+}
+
+.quiz-icon {
+    font-size: 1.3em;
+    flex-shrink: 0;
+}
+
+.quiz-info {
+    flex: 1;
+}
+
+.quiz-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95em;
+    margin-bottom: 4px;
+}
+
+.quiz-meta {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75em;
+}
+
+.quiz-arrow {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 1.2em;
+    transition: transform 0.3s ease;
+}
+
+.quiz-item:hover .quiz-arrow {
+    transform: translateX(5px);
+    color: #fff;
+}
+
+/* Responsive para seção de quizzes */
+@media (max-width: 768px) {
+    .quiz-section {
+        margin-top: 20px;
+        padding-top: 15px;
+    }
+    
+    .quiz-item {
+        padding: 10px 12px;
+    }
+    
+    .quiz-name {
+        font-size: 0.9em;
+    }
+}
+
+/* Divisor de Quizzes no Modal */
+.quiz-divider {
+    margin: 25px 0 15px 0;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 0.9em;
+    letter-spacing: 0.5px;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}

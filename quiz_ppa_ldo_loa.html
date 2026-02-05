@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz: PPA, LDO e LOA | SEFAZ GO</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; min-height: 100vh; }
+        
+        .quiz-header { background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 25px 40px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); position: sticky; top: 0; z-index: 100; }
+        .quiz-header h1 { font-size: 1.4em; margin-bottom: 5px; font-weight: 600; }
+        .quiz-header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; gap: 20px; }
+        .quiz-header p { opacity: 0.85; font-size: 0.85em; margin: 0; }
+        
+        .quiz-stats { display: flex; gap: 20px; align-items: center; opacity: 0.9; }
+        .stat-item { display: flex; align-items: center; gap: 5px; font-size: 0.85em; }
+        .stat-value { font-weight: 700; font-size: 1.1em; }
+        .stat-correct { color: #4CAF50; }
+        .stat-wrong { color: #ff6b6b; }
+        .stat-percentage { background: rgba(255, 255, 255, 0.2); padding: 4px 12px; border-radius: 15px; font-weight: 700; }
+        
+        .quiz-progress { background: rgba(255, 255, 255, 0.2); height: 4px; border-radius: 10px; margin-top: 15px; overflow: hidden; }
+        .quiz-progress-bar { background: linear-gradient(90deg, #4CAF50, #8BC34A); height: 100%; transition: width 0.3s ease; }
+        
+        .quiz-container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .question-card { background: white; border-radius: 12px; padding: 35px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); margin-bottom: 30px; }
+        .question-number { display: inline-block; background: #1e3c72; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 20px; font-size: 0.85em; }
+        .question-text { font-size: 1.1em; line-height: 1.7; color: #2c3e50; margin-bottom: 25px; }
+        
+        .options-container { display: flex; flex-direction: column; gap: 12px; }
+        .option { background: #f8f9fa; border: 2px solid transparent; border-radius: 8px; padding: 16px 20px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 15px; }
+        .option:hover:not(.disabled) { background: #e9ecef; border-color: #1e3c72; transform: translateX(5px); }
+        .option-letter { background: #1e3c72; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; font-size: 0.9em; }
+        .option-text { flex: 1; color: #2c3e50; line-height: 1.5; }
+        
+        .option.correct { background: #d4edda; border-color: #28a745; }
+        .option.correct .option-letter { background: #28a745; }
+        .option.wrong { background: #f8d7da; border-color: #dc3545; }
+        .option.wrong .option-letter { background: #dc3545; }
+        .option.disabled { cursor: not-allowed; }
+        
+        .feedback { margin-top: 20px; padding: 15px; border-radius: 8px; font-weight: 500; display: none; }
+        .feedback.show { display: block; }
+        .feedback.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .feedback.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .feedback-explanation { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1); font-weight: normal; font-size: 0.95em; line-height: 1.6; }
+        
+        .quiz-controls { display: flex; justify-content: space-between; gap: 15px; margin-top: 25px; }
+        .btn { padding: 12px 28px; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: 500; transition: all 0.2s ease; font-family: inherit; }
+        .btn-secondary { background: #e9ecef; color: #495057; }
+        .btn-secondary:hover:not(:disabled) { background: #dee2e6; }
+        .btn-primary { background: #1e3c72; color: white; }
+        .btn-primary:hover:not(:disabled) { background: #2a5298; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .score-display { text-align: center; padding: 50px 20px; }
+        .score-display h2 { color: #1e3c72; font-size: 2em; margin-bottom: 20px; }
+        .score-display p { font-size: 1.1em; color: #495057; margin: 15px 0; }
+        .score-percentage { font-size: 3.5em; font-weight: bold; color: #1e3c72; margin: 30px 0; }
+        .btn-view-history { background: #1e3c72; color: white; padding: 12px 28px; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: 500; transition: all 0.2s ease; margin-top: 15px; }
+        .btn-view-history:hover { background: #2a5298; }
+        
+        /* Histórico */
+        .history-section { background: white; border-radius: 12px; padding: 30px; margin-top: 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef; }
+        .history-title { font-size: 1.3em; color: #1e3c72; font-weight: 600; }
+        .history-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid transparent; transition: all 0.3s ease; }
+        .stat-card:hover { border-color: #1e3c72; transform: translateY(-3px); }
+        .stat-card.best { background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); }
+        .stat-card-value { font-size: 2em; font-weight: bold; color: #1e3c72; margin-bottom: 5px; }
+        .stat-card-label { font-size: 0.85em; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        .history-list { margin-top: 25px; }
+        .history-list-title { font-size: 1.1em; color: #495057; margin-bottom: 15px; font-weight: 600; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #1e3c72; transition: all 0.2s ease; }
+        .history-item:hover { background: #e9ecef; transform: translateX(5px); }
+        .history-item.best-score { background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-left-color: #ffa726; }
+        .history-date { font-size: 0.85em; color: #666; }
+        .history-score { font-size: 1.1em; font-weight: 600; color: #1e3c72; }
+        .history-badge { font-size: 1.2em; margin-left: 10px; }
+        .chart-container { margin: 30px 0; padding: 20px; background: #f8f9fa; border-radius: 10px; }
+        .chart-title { font-size: 1.1em; color: #495057; margin-bottom: 15px; font-weight: 600; }
+        .chart { position: relative; height: 200px; display: flex; align-items: flex-end; justify-content: space-around; gap: 10px; padding: 20px 0; }
+        .chart-bar { flex: 1; background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%); border-radius: 8px 8px 0 0; position: relative; min-height: 20px; transition: all 0.3s ease; cursor: pointer; }
+        .chart-bar:hover { opacity: 0.8; transform: translateY(-5px); }
+        .chart-bar.best { background: linear-gradient(180deg, #ffa726 0%, #ff9800 100%); }
+        .chart-value { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 0.75em; font-weight: 600; color: #495057; }
+        .chart-label { text-align: center; font-size: 0.7em; color: #666; margin-top: 8px; }
+        .empty-history { text-align: center; padding: 40px 20px; color: #999; }
+        .empty-history-icon { font-size: 3em; margin-bottom: 15px; }
+        .btn-clear { background: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9em; font-weight: 500; transition: all 0.2s ease; }
+        .btn-clear:hover { background: #c82333; }
+        
+        @media (max-width: 768px) {
+            .quiz-header { padding: 20px; }
+            .quiz-header h1 { font-size: 1.2em; }
+            .quiz-header-info { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .quiz-stats { gap: 15px; }
+            .stat-item { font-size: 0.8em; }
+            .question-card { padding: 25px 20px; }
+            .quiz-controls { flex-direction: column; }
+            .btn { width: 100%; }
+            .history-stats { grid-template-columns: 1fr; gap: 15px; }
+            .history-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .chart { height: 150px; }
+            .history-section { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-header">
+        <h1>🎯 Quiz: PPA, LDO e LOA</h1>
+        <div class="quiz-header-info">
+            <p id="questionCounter">Questão 1 de 50</p>
+            <div class="quiz-stats">
+                <div class="stat-item"><span>✅</span><span class="stat-value stat-correct" id="correctCount">0</span></div>
+                <div class="stat-item"><span>❌</span><span class="stat-value stat-wrong" id="wrongCount">0</span></div>
+                <div class="stat-item stat-percentage" id="percentageDisplay">0%</div>
+            </div>
+        </div>
+        <div class="quiz-progress"><div class="quiz-progress-bar" id="progressBar" style="width: 2%"></div></div>
+    </div>
+    
+    <div class="quiz-container">
+        <div id="quizBody"></div>
+        <div class="quiz-controls">
+            <button class="btn btn-secondary" id="prevBtn" onclick="previousQuestion()">← Anterior</button>
+            <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>Próxima →</button>
+        </div>
+    </div>
+    
+    <script>
+const questions = [
+            {
+                        "id": 1,
+                        "text": "O Instituto de Pesquisa Econômica Aplicada (Ipea) foi contratado para atuar no aperfeiçoamento dos programas e na avaliação de resultados que buscam superar a distância entre homens e mulheres nas políticas públicas. No escopo desse objetivo, uma das fontes de análise será o Plano Plurianual da União (PPA), que consiste no principal instrumento de planejamento governamental de médio prazo. Tendo como foco o potencial de efetividade dos programas propostos, um dos elementos relevantes de análise refere-se",
+                        "options": [
+                                    "a) à pertinência dos objetivos a serem atingidos.",
+                                    "b) ao alinhamento das diretrizes com o plano de governo.",
+                                    "c) ao grau de atingimento das metas fiscais.",
+                                    "d) ao nível de flexibilidade das metas.",
+                                    "e) às fontes de financiamento dos programas."
+                        ],
+                        "correct": 0,
+                        "explanation": "O plano plurianual se caracteriza como plano de médio prazo, que possui a atribuição de estabelecer os objetivos a serem atingidos pela Administração Pública (letra A). Além disso, os planos de governo que devem se alinhar às diretrizes do PPA, e não o contrário. Não há, por fim, previsão acerca de flexibilidade de metas, e é a LDO quem dispõe sobre metas fiscais."
+            },
+            {
+                        "id": 2,
+                        "text": "Com relação aos orçamentos contidos na Lei Orçamentária Anual, é correto afirmar que",
+                        "options": [
+                                    "a) o orçamento de seguridade social tem a função de reduzir as desigualdades inter-regionais, segundo o critério populacional.",
+                                    "b) o orçamento de investimento das empresas considera aquelas que a União detenha, direta ou indiretamente, a maioria do capital com direito a voto.",
+                                    "c) o orçamento fiscal compreende os Poderes e os Órgãos da Administração Direta, excluindo, no entanto, as entidades administrativas.",
+                                    "d) o orçamento de seguridade social envolve fundos e fundações privadas vinculadas à saúde, previdência social e segurança pública.",
+                                    "e) o orçamento de investimento das empresas engloba autarquias e sociedades de economia mistas garantidoras da função alocativa do estado."
+                        ],
+                        "correct": 1,
+                        "explanation": "O orçamento da seguridade social é o único deles que não possui a atribuição de reduzir desigualdades inter-regionais (art. 165, § 7º – CF). O orçamento fiscal não exclui as entidades administrativas, pelo contrário: inclui, de forma residual, todas as despesas de responsabilidade do ente federativo. O orçamento da seguridade social se refere às despesas com saúde, previdência e assistência (não há qualquer relação com segurança). E o orçamento de investimento não se refere às autarquias, mas apenas às estatais, ou seja, aquelas em que a União detenha maioria do capital social com direito a voto."
+            },
+            {
+                        "id": 3,
+                        "text": "A Lei de Diretrizes Orçamentárias (LDO) exerce um papel importante no sistema orçamentário federal brasileiro. Essa lei",
+                        "options": [
+                                    "a) estabelece um plano de quatro anos para a ação governamental.",
+                                    "b) orienta a elaboração da Lei Orçamentária Anual (LOA).",
+                                    "c) inclui o orçamento monetário relativo às políticas e às ações do Banco Central do Brasil.",
+                                    "d) é aprovada anualmente, após a elaboração do projeto da Lei Orçamentária Anual (LOA).",
+                                    "e) é constituída por três orçamentos: fiscal, seguridade social e investimentos das empresas."
+                        ],
+                        "correct": 1,
+                        "explanation": "O principal papel da LDO é orientar a Lei Orçamentária Anual, motivo pelo qual, em regra, é aprovada antes da LOA. Quem possui vigência de 4 anos é o PPA. Além disso, não existe orçamento monetário – há apenas a LOA como orçamento, subdividida em fiscal, investimento e seguridade social."
+            },
+            {
+                        "id": 4,
+                        "text": "Previsto na Constituição da República de 1988, o Plano Plurianual (PPA) é um dos instrumentos do planejamento público, que estabelece \"de forma regionalizada, as diretrizes, objetivos e metas da administração pública federal para as despesas de capital e outras delas decorrentes e para as relativas aos programas de duração continuada\". Em relação ao processo orçamentário do PPA e a sua vigência relativamente ao mandato do chefe do Poder Executivo, é correto afirmar que:",
+                        "options": [
+                                    "a) sua vigência se confunde com o mandato, vigendo durante os quatro anos do governo.",
+                                    "b) entra em vigor no segundo ano do mandato, mantendo-se vigente até o final do primeiro ano do mandato seguinte.",
+                                    "c) entra em vigor no terceiro ano do mandato, mantendo-se vigente até o final do segundo ano do mandato seguinte.",
+                                    "d) entra em vigor no quarto ano do mandato, mantendo-se vigente até o final do terceiro ano do mandato seguinte.",
+                                    "e) tem a vigência prescrita em decreto específico do chefe do Poder Executivo, podendo variar entre dois e quatro anos desde o início do mandato."
+                        ],
+                        "correct": 1,
+                        "explanation": "A vigência do PPA é de 4 anos, mas não coincidirá com o mandato presidencial. Assim, a vigência do PPA inicia somente no segundo ano do mandato do chefe do Executivo, até o fim do primeiro exercício financeiro do mandato subsequente, conforme o art. 35 do ADCT."
+            },
+            {
+                        "id": 5,
+                        "text": "A Constituição da República de 1988 estabeleceu três instrumentos de planejamento e orçamento. Sobre esses instrumentos, é INCORRETO afirmar que:",
+                        "options": [
+                                    "a) a Lei Orçamentária Anual é de iniciativa do chefe do Poder Executivo.",
+                                    "b) o Plano Plurianual deverá estabelecer os programas de duração continuada.",
+                                    "c) a Lei de Diretrizes Orçamentárias é um instrumento de conexão entre o PPA e o orçamento anual.",
+                                    "d) o Plano Plurianual tem vigência de quatro anos, iniciando-se no primeiro exercício do mandato do chefe do Poder Executivo.",
+                                    "e) a Lei Orçamentária Anual conterá três peças orçamentárias: o orçamento fiscal, o orçamento de investimento das estatais e o orçamento da seguridade social."
+                        ],
+                        "correct": 3,
+                        "explanation": "A vigência do PPA inicia somente no segundo ano do mandato do chefe do Executivo, até o fim do primeiro exercício financeiro do mandato subsequente, conforme o art. 35 do ADCT."
+            },
+            {
+                        "id": 6,
+                        "text": "O Plano Plurianual (PPA) representa um dos principais instrumentos de organização das atividades do governo, pelo qual são estabelecidas diretrizes, objetivos e metas para a Administração Pública. Acerca do PPA, assinale a afirmativa correta.",
+                        "options": [
+                                    "a) Tem início no primeiro ano do mandato do governante eleito.",
+                                    "b) Equivale a um plano de médio prazo, abrangendo o período de 4 anos.",
+                                    "c) Deve ser elaborado anualmente, visando se adequar ao orçamento anual.",
+                                    "d) Tem duração até o fim do segundo ano do mandato posterior ao mandatário que formulou o plano.",
+                                    "e) Abrange um período trianual, correspondendo ao disposto na Lei de Diretrizes Orçamentárias."
+                        ],
+                        "correct": 1,
+                        "explanation": "O PPA é um instrumento de médio prazo, com vigência de 4 anos, que se inicia no segundo ano do mandato do chefe do Executivo, até o fim do primeiro exercício financeiro do mandato subsequente, conforme o art. 35 do ADCT."
+            },
+            {
+                        "id": 7,
+                        "text": "No sistema orçamentário brasileiro, o Plano Plurianual",
+                        "options": [
+                                    "a) é um instrumento de operacionalização do orçamento.",
+                                    "b) é instituído por lei, para um período de cinco anos.",
+                                    "c) estabelece, de forma regionalizada, as diretrizes, os objetivos e as metas da administração pública federal para as despesas de capital e outras delas decorrentes e para as despesas relativas aos programas de duração continuada.",
+                                    "d) estabelece, de forma unificada, as diretrizes, os objetivos e as metas da administração pública federal para as despesas de capital e outras delas decorrentes e para as despesas relativas aos programas de duração determinada.",
+                                    "e) estabelece, de forma unificada, as diretrizes, os objetivos e as metas da administração pública federal para as despesas correntes em geral, excetuando-se as despesas de capital."
+                        ],
+                        "correct": 2,
+                        "explanation": "O plano plurianual é um instrumento de médio prazo, estabelecido de forma regionalizada (e não unificada) com duração de 4 anos. Além disso, o instrumento de operacionalização do orçamento é a LOA, e não o PPA."
+            },
+            {
+                        "id": 8,
+                        "text": "Considerando o processo de planejamento orçamentário, como assinalado na Constituição Federal de 1988, relacione os instrumentos de planejamento aos respectivos objetivos e/ou características.\n                1. Plano Plurianual ( ) Entre outros elementos, define as metas e prioridades da administração pública federal, incluindo as diretrizes da política fiscal de forma a assegurar consonância com a trajetória sustentável da dívida pública para cada exercício financeiro.\n                2. Lei de Diretrizes Orçamentárias ( ) Estabelece objetivos, diretrizes e metas para as despesas de capital, e outras despesas delas decorrentes, de forma regionalizada, além de estabelecer estes mesmos parâmetros para despesas com programas de duração continuada, as quais devem ter reflexo em cada orçamento anual.\n                3. Lei Orçamentária Anual ( ) Contém a previsão da receita e fixa a despesa para o exercício financeiro a que se refere, buscando garantir operacionalmente a execução do planejado.\n                Assinale a opção que indica a relação correta, segundo a ordem apresentada.",
+                        "options": [
+                                    "a) 1, 2 e 3.",
+                                    "b) 1, 3 e 2.",
+                                    "c) 2, 1 e 3.",
+                                    "d) 2, 3 e 1.",
+                                    "e) 3, 1 e 2."
+                        ],
+                        "correct": 2,
+                        "explanation": "A primeira descrição corresponde à LDO (2), a segunda ao PPA (1), e a terceira à LOA (3). Portanto, a ordem correta é 2, 1 e 3."
+            },
+            {
+                        "id": 9,
+                        "text": "No âmbito do processo orçamentário, a orientação do processo de elaboração do orçamento anual deverá estar contida na(o)",
+                        "options": [
+                                    "a) Plano Plurianual (PPA).",
+                                    "b) Lei de Diretrizes Orçamentárias (LDO).",
+                                    "c) Lei de Responsabilidade Fiscal (LRF).",
+                                    "d) Lei de Acesso à Informação (LAI).",
+                                    "e) Lei Orçamentária Anual (LOA)."
+                        ],
+                        "correct": 1,
+                        "explanation": "Em conformidade com o art. 165, § 2º da Constituição Federal de 1988 – CF/1988."
+            },
+            {
+                        "id": 10,
+                        "text": "O orçamento dos entes públicos é regulado por leis integradas, que permitem o planejamento das ações governamentais. A lei que se constitui no elo entre o planejamento estratégico e o planejamento operacional é o(a)",
+                        "options": [
+                                    "a) Plano Plurianual (PPA.).",
+                                    "b) Lei das Diretrizes Orçamentárias (LDO).",
+                                    "c) Lei Orçamentária Anual (LOA.).",
+                                    "d) Lei de Responsabilidade Fiscal (LRF).",
+                                    "e) Lei n. 4.320/1964, que institui normas gerais de Direito Financeiro."
+                        ],
+                        "correct": 1,
+                        "explanation": "O planejamento estratégico é estabelecido pelo PPA e o operacional pela LOA, cujo elo é constituído pelo planejamento tático, ou seja, pela LDO."
+            },
+            {
+                        "id": 11,
+                        "text": "Acerca da Lei Orçamentária Anual (LOA), assinale a alternativa correta.",
+                        "options": [
+                                    "a) Em observância ao princípio da unidade, compreende uma única peça orçamentária: o Orçamento Fiscal.",
+                                    "b) Essa lei é de iniciativa privativa do presidente da República, não podendo ser alterada pelo Poder Legislativo.",
+                                    "c) Além do Orçamento Fiscal, compreende o Orçamento da Seguridade Social e o Orçamento Financeiro das Empresas Públicas Federais.",
+                                    "d) As receitas e despesas públicas referentes às autarquias e às fundações públicas serão incluídas no Orçamento Fiscal do respectivo ente da federação.",
+                                    "e) A LOA é acompanhada por dois anexos: o Anexo de Metas Fiscais e o Anexo de Riscos Fiscais."
+                        ],
+                        "correct": 3,
+                        "explanation": "O princípio da unidade estabelece que haverá apenas uma LOA para cada ente federativo, contendo três peças (Orçamentos Fiscal, de Investimento e da Seguridade Social). A iniciativa é privativa do chefe do Poder Executivo, mas a estrutura da LOA pode ser alterada por meio de emendas parlamentares. De fato, constará do Orçamento Fiscal as despesas relativas às autarquias e às fundações, assim como quaisquer outras que, de forma residual, não se refira às estatais (orçamento de investimento) e a gastos com saúde, previdência e assistência (seguridade social). Por fim, conforme o art. 4º da LRF, é a LDO que conterá os Anexos de metas e de riscos fiscais."
+            },
+            {
+                        "id": 12,
+                        "text": "A lei de diretrizes orçamentárias é o instrumento legal que, por determinação constitucional, deve contemplar as diretrizes, os objetivos e as metas estabelecidos pela administração pública federal para as despesas de capital e outras delas decorrentes.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "A atribuição de contemplar as diretrizes, objetivos e metas é do Plano Plurianual – PPA."
+            },
+            {
+                        "id": 13,
+                        "text": "A lei de diretrizes orçamentárias (LDO) tem a função de estabelecer as metas e prioridades da administração pública, sendo instrumento apto a dispor sobre alterações na legislação tributária.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "Atribuições condizentes com as funções da LDO, conforme previsto no art. 165, § 2º da CF/1988."
+            },
+            {
+                        "id": 14,
+                        "text": "A lei orçamentária anual (LOA) poderá conter previsões de despesas para exercícios seguintes.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "Atribuições condizentes com as funções da LOA, conforme previsto no art. 165, § 14 da CF/1988."
+            },
+            {
+                        "id": 15,
+                        "text": "O plano plurianual é o instrumento de planejamento que estabelece, de forma unificada em nível nacional, diretrizes, objetivos e metas para um período de quatro anos.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "O PPA, de fato, contém diretrizes, objetivos e metas para um período de 4 anos, no entanto, ele não é um instrumento em nível nacional, pois cada ente federativo estabelecerá seu próprio PPA."
+            },
+            {
+                        "id": 16,
+                        "text": "É possível a inserção, na lei orçamentária anual, de previsões de despesas para exercícios seguintes.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "Atribuições condizentes com as funções da LOA, conforme previsto no art. 165, § 14 da CF/1988."
+            },
+            {
+                        "id": 17,
+                        "text": "É vedada a previsão, na lei orçamentária anual, de despesas de investimentos plurianuais para os exercícios seguintes.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "É possível à LOA prever despesas para exercícios seguintes, conforme previsto no art. 165, § 14 da CF/1988."
+            },
+            {
+                        "id": 18,
+                        "text": "De acordo com a Constituição Federal de 1988, a lei de diretrizes orçamentárias deve compreender as metas e prioridades da administração pública federal e estabelecer as diretrizes da política fiscal e respectivas metas, em consonância com a trajetória sustentável da dívida pública.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "Atribuições condizentes com as funções da LDO, conforme previsto no art. 165, § 2º da CF/1988."
+            },
+            {
+                        "id": 19,
+                        "text": "A lei orçamentária anual pode prever investimento com duração superior a um exercício financeiro, se uma lei específica autorizar a inclusão do referido investimento no plano plurianual.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "Em conformidade com o art. 167, § 1º da CF/1988, nenhum investimento que ultrapasse o exercício poderá ser iniciado sem prévia inclusão no PPA, ou lei que autorize essa inclusão."
+            },
+            {
+                        "id": 20,
+                        "text": "Alterações na legislação tributária, incluindo reduções ou aumentos de alíquotas de impostos, devem constar do texto da lei de diretrizes orçamentárias.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "Ao fato de que o item não disse que a LDO promove alterações, mas inclui no seu texto mudanças na legislação tributária, conforme dispõe o art. 165, § 2º da CF/1988."
+            },
+            {
+                        "id": 21,
+                        "text": "Obras públicas somente podem ser realizadas quando as despesas de capital correspondentes estiverem previstas no plano plurianual.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "Nem todas as obras (investimentos) necessitam de inclusão prévia no PPA. Isso só é necessário caso ultrapasse o exercício financeiro."
+            },
+            {
+                        "id": 22,
+                        "text": "A regionalização das diretrizes, dos objetivos e das metas da administração federal no PPA deve ser feita por macrorregiões geoeconômicas.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "O PPA, de fato, será de forma regionalizada, mas não há um critério definido para essa regionalização, que será aquela mais adequada para cada política pública. Se o item substituísse o termo \"deve\" por \"pode\", não haveria inconsistência."
+            },
+            {
+                        "id": 23,
+                        "text": "O plano plurianual estabelece diretrizes nacionais para as despesas de capital e para os programas de duração continuada.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "O PPA, de fato, contém diretrizes, objetivos e metas para um período de 4 anos, no entanto, ele não é um instrumento em nível nacional, pois cada ente federativo estabelecerá seu próprio PPA."
+            },
+            {
+                        "id": 24,
+                        "text": "Todos os projetos de lei relacionados a orçamento devem ser apresentados conjuntamente, ou seja, o projeto de lei de diretrizes orçamentárias, o de orçamento anual e, quando for o caso, o de plano plurianual devem ser apresentados na mesma data ao Poder Legislativo, para discussão e votação.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "O PPA é enviado somente no primeiro ano de mandato até o dia 31/08. Já a LDO é encaminhada todo ano para o Congresso Nacional (CN) até 15/04. A LOA é encaminhada todo ano até 31/08 para o CN."
+            },
+            {
+                        "id": 25,
+                        "text": "A lei que instituir o plano plurianual estabelecerá, de forma regionalizada, as diretrizes, os objetivos e as metas da administração pública federal para as despesas de capital e outras delas decorrentes e para as relativas aos programas de duração continuada.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "Atribuições condizentes com as funções do PPA, conforme previsto no art. 165, § 1º da CF/1988."
+            },
+            {
+                        "id": 26,
+                        "text": "A LOA é elaborada por uma comissão mista com representantes dos Poderes Executivo e Legislativo.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "A elaboração e iniciativa da lei orçamentária anual cabe ao Poder Executivo."
+            },
+            {
+                        "id": 27,
+                        "text": "O sistema de planejamento orçamentário federal segue o PPA, a LDO, a LRF e a LOA, instrumentos legais que se materializam periodicamente após serem propostos pelo Poder Executivo federal e, posteriormente, aprovados pelo Poder Legislativo.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "Segundo o art. 165 da CF/1988: \"Leis de iniciativa do Poder Executivo estabelecerão: I – o plano plurianual; II – as diretrizes orçamentárias; III – os orçamentos anuais\". A LRF não se inclui entre os instrumentos de planejamento orçamentário."
+            },
+            {
+                        "id": 28,
+                        "text": "As diretrizes orçamentárias são estabelecidas por leis de iniciativa do Poder Executivo.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "Segundo o art. 165 da CF/1988: \"Leis de iniciativa do Poder Executivo estabelecerão: I – o plano plurianual; II – as diretrizes orçamentárias; III – os orçamentos anuais\"."
+            },
+            {
+                        "id": 29,
+                        "text": "O PPA e a LDO devem ser aprovados pelo Poder Legislativo.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "De acordo com o art. 166 da CF/1988, os projetos de lei relativos ao plano plurianual, às diretrizes orçamentárias, ao orçamento anual e aos créditos adicionais serão apreciados pelas duas Casas do Congresso Nacional, na forma do regimento comum. Ou seja, devem ser analisados e votados pelo Poder Legislativo."
+            },
+            {
+                        "id": 30,
+                        "text": "As empresas em que a União detenha qualquer percentual do capital social com direito a voto integram o orçamento de investimento das estatais.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "O Orçamento de Investimento contém as empresas em que a União, direta ou indiretamente, detenha a maioria do capital social com direito a voto."
+            },
+            {
+                        "id": 31,
+                        "text": "Sob pena de ser considerado inválido, o decreto que estabelece o PPA não pode deixar de especificar, de forma regionalizada, as metas e as prioridades do governo para os quatro anos seguintes à sua aprovação, relativamente às despesas de capital e outras delas decorrentes, e também as despesas de duração continuada.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "A lei que instituir o plano plurianual estabelecerá, de forma regionalizada, as diretrizes, objetivos e metas da administração pública federal para as despesas de capital e outras delas decorrentes e para as relativas aos programas de duração continuada (art. 165, § 1º, da CF/1988). Assim, o PPA deve ser instituído por lei e não pode ser estabelecido por decreto."
+            },
+            {
+                        "id": 32,
+                        "text": "Os orçamentos fiscal, da seguridade social e de investimento nas empresas estatais, no âmbito municipal, são de iniciativa da Câmara Municipal.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "A iniciativa da LOA (composta pelos orçamentos fiscal, da seguridade social e de investimento nas empresas estatais) no âmbito de qualquer ente é do Poder Executivo."
+            },
+            {
+                        "id": 33,
+                        "text": "Conforme determinação da CF, o plano plurianual deve ser elaborado em consonância com os planos e programas nacionais, regionais e setoriais. A explicação para essa vinculação reside no fato de que tais planos e programas apresentam maior duração e são mais específicos.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "Os planos e programas nacionais, regionais e setoriais previstos nesta Constituição serão elaborados em consonância com o plano plurianual e apreciados pelo Congresso Nacional (art. 165, § 4º, da CF/1988)."
+            },
+            {
+                        "id": 34,
+                        "text": "De acordo com a CF, alterações na legislação tributária da União devem ser processadas em conformidade com princípios e determinações contidos na LOA.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "A lei de diretrizes orçamentárias – LDO que compreenderá as metas e prioridades da administração pública federal, orientará a elaboração da lei orçamentária anual e disporá sobre as alterações na legislação tributária (art. 165, § 2º, da CF/1988)."
+            },
+            {
+                        "id": 35,
+                        "text": "As propostas orçamentárias que visem a criação de cargos, empregos e funções devem constar na LDO.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "A concessão de qualquer vantagem ou aumento de remuneração, a criação de cargos, empregos e funções ou alteração de estrutura de carreiras necessita de autorização específica na lei de diretrizes orçamentárias, ressalvadas as empresas públicas e as sociedades de economia mista."
+            },
+            {
+                        "id": 36,
+                        "text": "A Lei de Diretrizes Orçamentárias, entre outros, orientará a elaboração da Lei Orçamentária Anual, disporá sobre as alterações na legislação tributária e estabelecerá a política de aplicação das agências financeiras oficiais de fomento.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "Atribuições condizentes com as funções da LDO, conforme previsto no art. 165, § 2º da CF/1988."
+            },
+            {
+                        "id": 37,
+                        "text": "A Lei de Diretrizes Orçamentárias compreenderá as metas e prioridades da Administração Pública federal, porém não incluindo as despesas de capital para o exercício financeiro subsequente.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "A lei de diretrizes orçamentárias compreenderá as metas e prioridades da administração pública federal, incluindo as despesas de capital para o exercício financeiro subsequente, orientará a elaboração da lei orçamentária anual, disporá sobre as alterações na legislação tributária e estabelecerá a política de aplicação das agências financeiras oficiais de fomento (art. 165, § 2º, da CF/1988)."
+            },
+            {
+                        "id": 38,
+                        "text": "A vigência da lei orçamentária anual deve coincidir com a vigência da respectiva lei de diretrizes orçamentárias.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "A vigência da LOA será de 1 ano e coincidirá com o ano civil (01/01 a 31/12). Já a vigência da LDO inicia a partir do momento de sua aprovação/sanção (no meio do ano) até o fim do exercício subsequente, ou seja, até o fim da vigência da LOA a que se refere."
+            },
+            {
+                        "id": 39,
+                        "text": "O orçamento da seguridade social dos fundos e das fundações mantidos pelo Poder Executivo integram a lei orçamentária anual.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "O Orçamento da Seguridade Social, relacionado a despesas com saúde, previdência e assistência social, compõe a LOA."
+            },
+            {
+                        "id": 40,
+                        "text": "O projeto de LOA da União para o exercício seguinte deve ser enviado ao Congresso Nacional até o final do exercício corrente.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "O projeto da LOA deverá ser encaminhado ao Legislativo quatro meses antes do término do exercício financeiro (31 de agosto), e devolvido ao executivo até o encerramento da sessão legislativa (22 de dezembro) do exercício de sua elaboração."
+            },
+            {
+                        "id": 41,
+                        "text": "A LDO compreende o orçamento fiscal, o orçamento da seguridade social e o orçamento de investimentos das empresas com capital inicial pertencente à União.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "A LOA (e não a LDO) compreende o orçamento fiscal, o orçamento da seguridade social e o orçamento de investimentos das empresas em que a União, direta ou indiretamente, detenha a maioria do capital social com direito a voto."
+            },
+            {
+                        "id": 42,
+                        "text": "Ações e serviços públicos de saúde, no âmbito do Sistema Único de Saúde (SUS), são financiados pelas três esferas da administração e integram uma rede regionalizada e hierarquizada, razões pelas quais seus recursos e aplicações estão englobados no orçamento da seguridade social, no âmbito da União.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "Segundo o art. 195 da CF/1988, a proposta de orçamento da seguridade social será elaborada de forma integrada pelos órgãos responsáveis pela saúde, previdência social e assistência social, tendo em vista as metas e prioridades estabelecidas na lei de diretrizes orçamentárias, assegurada a cada área a gestão de seus recursos. No entanto, as receitas dos estados, do Distrito Federal e dos municípios destinadas à seguridade social constarão dos respectivos orçamentos, não integrando o orçamento da União."
+            },
+            {
+                        "id": 43,
+                        "text": "A Lei de Diretrizes Orçamentárias deverá estabelecer as diretrizes da política fiscal e respectivas metas, em consonância com a trajetória sustentável da dívida pública.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "Conforme art. 165, § 2º da CF/1988 (atualizado pela EC 109/2021)."
+            },
+            {
+                        "id": 44,
+                        "text": "A Lei Orçamentária Anual compreenderá, entre outros, orçamento da seguridade social, abrangendo todas as entidades e órgãos a ela vinculados, da administração direta ou indireta, bem como os fundos, empresas públicas, sociedades de economia mistas e as fundações instituídos e mantidos pelo Poder Público.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "As empresas públicas e sociedades de economia mista, em regra independentes, constarão do orçamento de investimentos, e não da seguridade social."
+            },
+            {
+                        "id": 45,
+                        "text": "As Diretrizes Orçamentárias é a peça do orçamento público, cuja lei deverá ser acompanhada de demonstrativo regionalizado do efeito, sobre as receitas e despesas, decorrentes de isenções, anistias, remissões, subsídios e benefícios de natureza financeira, tributária e creditícia.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "A atribuição do item se refere ao Projeto de Lei Orçamentária Anual (PLOA), conforme art. 165, § 6º da CF/1988."
+            },
+            {
+                        "id": 46,
+                        "text": "A lei orçamentária anual é constituída por três orçamentos: fiscal, seguridade social e investimento das empresas.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "Conforme art. 165, § 5º da CF/1988."
+            },
+            {
+                        "id": 47,
+                        "text": "A Constituição Federal de 1988 determina que \"Nenhum investimento cuja execução ultrapasse um exercício financeiro poderá ser iniciado sem prévia inclusão no Plano Plurianual, ou sem lei que autorize a inclusão, sob pena de crime de responsabilidade\".",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "Conforme art. 167, § 1º da CF/1988."
+            },
+            {
+                        "id": 48,
+                        "text": "A lei de diretrizes orçamentárias compreenderá de forma regionalizada as diretrizes, objetivos e metas da administração pública federal, para as despesas de capital e outras delas decorrentes e para os programas de duração continuada.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "O conceito do item se refere ao Plano Plurianual (PPA), conforme art. 165, § 1º da CF/1988."
+            },
+            {
+                        "id": 49,
+                        "text": "A vigência do PPA é de quatro anos, iniciando-se no segundo exercício financeiro do mandato do Chefe do Executivo e terminando no primeiro exercício financeiro do mandato subsequente.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 0,
+                        "explanation": "Conforme art. 35, § 2º do ADCT."
+            },
+            {
+                        "id": 50,
+                        "text": "O projeto da lei orçamentária anual deve ser encaminhado ao Congresso Nacional até 31 de junho. O Congresso Nacional deve devolver o projeto da LOA ao Presidente da República para sanção até 31 de novembro.",
+                        "options": [
+                                    "a) Certo",
+                                    "b) Errado"
+                        ],
+                        "correct": 1,
+                        "explanation": "O projeto da LOA deve ser encaminhado ao Congresso Nacional até 31 de agosto, e não 31 de junho. O Congresso deve devolver para sanção até 22 de dezembro."
+            }
+];
+        let currentQuestion = 0;
+        let score = 0;
+        let wrongAnswers = 0;
+        let answered = [];
+
+        function loadQuestion() {
+            const question = questions[currentQuestion];
+            const quizBody = document.getElementById('quizBody');
+            const letters = ['A', 'B', 'C', 'D', 'E'];
+            const optionsHTML = question.options.map((option, index) => `
+                <div class="option" onclick="selectAnswer(${index})" id="option-${index}">
+                    <div class="option-letter">${letters[index]}</div>
+                    <div class="option-text">${option}</div>
+                </div>
+            `).join('');
+
+            quizBody.innerHTML = `
+                <div class="question-card">
+                    <span class="question-number">Questão ${question.id}</span>
+                    <div class="question-text">${question.text}</div>
+                    <div class="options-container">${optionsHTML}</div>
+                    <div class="feedback" id="feedback"></div>
+                </div>
+            `;
+            updateProgress();
+            updateButtons();
+        }
+
+        function selectAnswer(index) {
+            if (answered[currentQuestion]) return;
+            const question = questions[currentQuestion];
+            const feedback = document.getElementById('feedback');
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.add('disabled'));
+
+            const letters = ['A', 'B', 'C', 'D', 'E'];
+            if (index === question.correct) {
+                options[index].classList.add('correct');
+                feedback.className = 'feedback show success';
+                feedback.innerHTML = `✅ Resposta Correta!<div class="feedback-explanation"><strong>Explicação:</strong> ${question.explanation}</div>`;
+                score++;
+            } else {
+                options[index].classList.add('wrong');
+                options[question.correct].classList.add('correct');
+                feedback.className = 'feedback show error';
+                feedback.innerHTML = `❌ Resposta Incorreta! A resposta correta é a alternativa ${letters[question.correct]}.<div class="feedback-explanation"><strong>Explicação:</strong> ${question.explanation}</div>`;
+                wrongAnswers++;
+            }
+            answered[currentQuestion] = true;
+            updateButtons();
+            updateStats();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                showFinalScore();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('questionCounter').textContent = `Questão ${currentQuestion + 1} de ${questions.length}`;
+        }
+
+        function updateStats() {
+            const totalAnswered = score + wrongAnswers;
+            const percentage = totalAnswered > 0 ? Math.round((score / totalAnswered) * 100) : 0;
+            document.getElementById('correctCount').textContent = score;
+            document.getElementById('wrongCount').textContent = wrongAnswers;
+            document.getElementById('percentageDisplay').textContent = percentage + '%';
+        }
+
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentQuestion === 0;
+            document.getElementById('nextBtn').disabled = !answered[currentQuestion];
+            if (currentQuestion === questions.length - 1 && answered[currentQuestion]) {
+                document.getElementById('nextBtn').textContent = 'Ver Resultado →';
+            } else {
+                document.getElementById('nextBtn').textContent = 'Próxima →';
+            }
+        }
+
+        function showFinalScore() {
+            const percentage = Math.round((score / questions.length) * 100);
+            const quizBody = document.getElementById('quizBody');
+            saveToHistory(score, questions.length, percentage);
+            let message = percentage >= 70 ? '🎉 Excelente! Você está preparado!' : percentage >= 50 ? '👍 Bom trabalho! Continue estudando!' : '📚 Continue estudando! Você vai conseguir!';
+            quizBody.innerHTML = `
+                <div class="question-card score-display">
+                    <h2>${message}</h2>
+                    <p>Você acertou <strong>${score}</strong> de <strong>${questions.length}</strong> questões</p>
+                    <div class="score-percentage">${percentage}%</div>
+                    <button class="btn btn-primary" onclick="restartQuiz()">🔄 Refazer Quiz</button>
+                    <button class="btn btn-view-history" onclick="showHistory()">📊 Ver Histórico</button>
+                </div>
+            `;
+            document.querySelector('.quiz-controls').style.display = 'none';
+        }
+
+        function saveToHistory(correct, total, percentage) {
+            const history = getHistory();
+            history.push({date: new Date().toISOString(), correct, total, percentage, timestamp: Date.now()});
+            localStorage.setItem('quizHistoryPPA', JSON.stringify(history));
+        }
+
+        function getHistory() {
+            const stored = localStorage.getItem('quizHistoryPPA');
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function clearHistory() {
+            if (confirm('Tem certeza que deseja limpar todo o histórico? Esta ação não pode ser desfeita.')) {
+                localStorage.removeItem('quizHistoryPPA');
+                showHistory();
+            }
+        }
+
+        function showHistory() {
+            const history = getHistory();
+            const quizBody = document.getElementById('quizBody');
+            if (history.length === 0) {
+                quizBody.innerHTML = `
+                    <div class="history-section"><div class="empty-history">
+                        <div class="empty-history-icon">📊</div>
+                        <h3>Nenhum histórico ainda</h3>
+                        <p>Complete o quiz para começar a acompanhar seu progresso!</p>
+                        <button class="btn btn-primary" onclick="restartQuiz()" style="margin-top: 20px;">Iniciar Quiz</button>
+                    </div></div>
+                `;
+                document.querySelector('.quiz-controls').style.display = 'none';
+                return;
+            }
+            const bestScore = Math.max(...history.map(h => h.percentage));
+            const avgScore = Math.round(history.reduce((sum, h) => sum + h.percentage, 0) / history.length);
+            const sortedHistory = [...history].sort((a, b) => b.timestamp - a.timestamp);
+            const recentHistory = sortedHistory.slice(0, 10);
+            const historyHTML = recentHistory.map((attempt) => {
+                const date = new Date(attempt.date);
+                const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const isBest = attempt.percentage === bestScore;
+                return `<div class="history-item ${isBest ? 'best-score' : ''}">
+                    <span class="history-date">${dateStr} às ${timeStr}</span>
+                    <span><span class="history-score">${attempt.percentage}% (${attempt.correct}/${attempt.total})</span>
+                    ${isBest ? '<span class="history-badge">🏆</span>' : ''}</span></div>`;
+            }).join('');
+            const chartData = recentHistory.slice(0, 10).reverse();
+            const chartHTML = chartData.map((attempt) => {
+                const height = attempt.percentage;
+                const isBest = attempt.percentage === bestScore;
+                const date = new Date(attempt.date);
+                const label = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                return `<div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                    <div class="chart-bar ${isBest ? 'best' : ''}" style="height: ${height}%" title="${attempt.percentage}% - ${label}">
+                        <span class="chart-value">${attempt.percentage}%</span>
+                    </div><div class="chart-label">${label}</div></div>`;
+            }).join('');
+            quizBody.innerHTML = `
+                <div class="history-section">
+                    <div class="history-header">
+                        <h2 class="history-title">📊 Seu Desempenho</h2>
+                        <button class="btn-clear" onclick="clearHistory()">🗑️ Limpar Histórico</button>
+                    </div>
+                    <div class="history-stats">
+                        <div class="stat-card best"><div class="stat-card-value">🏆 ${bestScore}%</div><div class="stat-card-label">Melhor Pontuação</div></div>
+                        <div class="stat-card"><div class="stat-card-value">${avgScore}%</div><div class="stat-card-label">Média Geral</div></div>
+                        <div class="stat-card"><div class="stat-card-value">${history.length}</div><div class="stat-card-label">Tentativas</div></div>
+                    </div>
+                    ${chartData.length > 1 ? `<div class="chart-container"><h3 class="chart-title">📈 Evolução (Últimas ${chartData.length} tentativas)</h3><div class="chart">${chartHTML}</div></div>` : ''}
+                    <div class="history-list"><h3 class="history-list-title">📝 Últimas Tentativas</h3>${historyHTML}</div>
+                    <div style="text-align: center; margin-top: 30px;"><button class="btn btn-primary" onclick="restartQuiz()">🔄 Fazer Novo Quiz</button></div>
+                </div>
+            `;
+            document.querySelector('.quiz-controls').style.display = 'none';
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            wrongAnswers = 0;
+            answered = [];
+            document.querySelector('.quiz-controls').style.display = 'flex';
+            updateStats();
+            loadQuestion();
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz: Princípios Orçamentários | SEFAZ GO</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; min-height: 100vh; }
+        .quiz-header { background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 25px 40px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); position: sticky; top: 0; z-index: 100; }
+        .quiz-header h1 { font-size: 1.4em; margin-bottom: 5px; font-weight: 600; }
+        .quiz-header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; gap: 20px; }
+        .quiz-header p { opacity: 0.85; font-size: 0.85em; margin: 0; }
+        .quiz-stats { display: flex; gap: 20px; align-items: center; opacity: 0.9; }
+        .stat-item { display: flex; align-items: center; gap: 5px; font-size: 0.85em; }
+        .stat-value { font-weight: 700; font-size: 1.1em; }
+        .stat-correct { color: #4CAF50; }
+        .stat-wrong { color: #ff6b6b; }
+        .stat-percentage { background: rgba(255, 255, 255, 0.2); padding: 4px 12px; border-radius: 15px; font-weight: 700; }
+        .quiz-progress { background: rgba(255, 255, 255, 0.2); height: 4px; border-radius: 10px; margin-top: 15px; overflow: hidden; }
+        .quiz-progress-bar { background: linear-gradient(90deg, #4CAF50, #8BC34A); height: 100%; transition: width 0.3s ease; }
+        .quiz-container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .question-card { background: white; border-radius: 12px; padding: 35px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); margin-bottom: 30px; }
+        .question-number { display: inline-block; background: #1e3c72; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 600; margin-bottom: 20px; font-size: 0.85em; }
+        .question-source { display: inline-block; background: #e9ecef; color: #666; padding: 4px 12px; border-radius: 15px; font-size: 0.75em; margin-left: 10px; }
+        .question-text { font-size: 1.1em; line-height: 1.7; color: #2c3e50; margin-bottom: 25px; white-space: pre-wrap; }
+        .options-container { display: flex; flex-direction: column; gap: 12px; }
+        .option { background: #f8f9fa; border: 2px solid transparent; border-radius: 8px; padding: 16px 20px; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 15px; }
+        .option:hover:not(.disabled) { background: #e9ecef; border-color: #1e3c72; transform: translateX(5px); }
+        .option-letter { background: #1e3c72; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; font-size: 0.9em; }
+        .option-text { flex: 1; color: #2c3e50; line-height: 1.5; }
+        .option.correct { background: #d4edda; border-color: #28a745; }
+        .option.correct .option-letter { background: #28a745; }
+        .option.wrong { background: #f8d7da; border-color: #dc3545; }
+        .option.wrong .option-letter { background: #dc3545; }
+        .option.disabled { cursor: not-allowed; }
+        .feedback { margin-top: 20px; padding: 15px; border-radius: 8px; font-weight: 500; display: none; }
+        .feedback.show { display: block; }
+        .feedback.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .feedback.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .feedback-explanation { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1); font-weight: normal; font-size: 0.95em; line-height: 1.6; }
+        .quiz-controls { display: flex; justify-content: space-between; gap: 15px; margin-top: 25px; }
+        .btn { padding: 12px 28px; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: 500; transition: all 0.2s ease; font-family: inherit; }
+        .btn-secondary { background: #e9ecef; color: #495057; }
+        .btn-secondary:hover:not(:disabled) { background: #dee2e6; }
+        .btn-primary { background: #1e3c72; color: white; }
+        .btn-primary:hover:not(:disabled) { background: #2a5298; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .score-display { text-align: center; padding: 50px 20px; }
+        .score-display h2 { color: #1e3c72; font-size: 2em; margin-bottom: 20px; }
+        .score-display p { font-size: 1.1em; color: #495057; margin: 15px 0; }
+        .score-percentage { font-size: 3.5em; font-weight: bold; color: #1e3c72; margin: 30px 0; }
+        .btn-view-history { background: #1e3c72; color: white; padding: 12px 28px; border: none; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: 500; transition: all 0.2s ease; margin-top: 15px; }
+        .btn-view-history:hover { background: #2a5298; }
+        .history-section { background: white; border-radius: 12px; padding: 30px; margin-top: 30px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef; }
+        .history-title { font-size: 1.3em; color: #1e3c72; font-weight: 600; }
+        .history-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid transparent; transition: all 0.3s ease; }
+        .stat-card:hover { border-color: #1e3c72; transform: translateY(-3px); }
+        .stat-card.best { background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); }
+        .stat-card-value { font-size: 2em; font-weight: bold; color: #1e3c72; margin-bottom: 5px; }
+        .stat-card-label { font-size: 0.85em; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        .history-list { margin-top: 25px; }
+        .history-list-title { font-size: 1.1em; color: #495057; margin-bottom: 15px; font-weight: 600; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #1e3c72; transition: all 0.2s ease; }
+        .history-item:hover { background: #e9ecef; transform: translateX(5px); }
+        .history-item.best-score { background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-left-color: #ffa726; }
+        .history-date { font-size: 0.85em; color: #666; }
+        .history-score { font-size: 1.1em; font-weight: 600; color: #1e3c72; }
+        .history-badge { font-size: 1.2em; margin-left: 10px; }
+        .chart-container { margin: 30px 0; padding: 20px; background: #f8f9fa; border-radius: 10px; }
+        .chart-title { font-size: 1.1em; color: #495057; margin-bottom: 15px; font-weight: 600; }
+        .chart { position: relative; height: 200px; display: flex; align-items: flex-end; justify-content: space-around; gap: 10px; padding: 20px 0; }
+        .chart-bar { flex: 1; background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%); border-radius: 8px 8px 0 0; position: relative; min-height: 20px; transition: all 0.3s ease; cursor: pointer; }
+        .chart-bar:hover { opacity: 0.8; transform: translateY(-5px); }
+        .chart-bar.best { background: linear-gradient(180deg, #ffa726 0%, #ff9800 100%); }
+        .chart-value { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 0.75em; font-weight: 600; color: #495057; }
+        .chart-label { text-align: center; font-size: 0.7em; color: #666; margin-top: 8px; }
+        .empty-history { text-align: center; padding: 40px 20px; color: #999; }
+        .empty-history-icon { font-size: 3em; margin-bottom: 15px; }
+        .btn-clear { background: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9em; font-weight: 500; transition: all 0.2s ease; }
+        .btn-clear:hover { background: #c82333; }
+        @media (max-width: 768px) {
+            .quiz-header { padding: 20px; }
+            .quiz-header h1 { font-size: 1.2em; }
+            .quiz-header-info { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .quiz-stats { gap: 15px; }
+            .stat-item { font-size: 0.8em; }
+            .question-card { padding: 25px 20px; }
+            .quiz-controls { flex-direction: column; }
+            .btn { width: 100%; }
+            .history-stats { grid-template-columns: 1fr; gap: 15px; }
+            .history-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .chart { height: 150px; }
+            .history-section { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-header">
+        <h1>🎯 Quiz: Princípios Orçamentários</h1>
+        <div class="quiz-header-info">
+            <p id="questionCounter">Questão 1 de 15</p>
+            <div class="quiz-stats">
+                <div class="stat-item"><span>✅</span><span class="stat-value stat-correct" id="correctCount">0</span></div>
+                <div class="stat-item"><span>❌</span><span class="stat-value stat-wrong" id="wrongCount">0</span></div>
+                <div class="stat-item stat-percentage" id="percentageDisplay">0%</div>
+            </div>
+        </div>
+        <div class="quiz-progress"><div class="quiz-progress-bar" id="progressBar" style="width: 6.67%"></div></div>
+    </div>
+    <div class="quiz-container">
+        <div id="quizBody"></div>
+        <div class="quiz-controls">
+            <button class="btn btn-secondary" id="prevBtn" onclick="previousQuestion()">← Anterior</button>
+            <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>Próxima →</button>
+        </div>
+    </div>
+    <script>
+        const questions = [
+            {
+                        "id": 1,
+                        "source": "FGV/CM-SP/2024",
+                        "type": "vf",
+                        "text": "Os princípios orçamentários estabelecem um alicerce robusto para a administração responsável e eficaz dos recursos públicos no Brasil, fomentando a responsabilidade e a adesão aos princípios democráticos. Em relação aos princípios orçamentários, avalie se cada afirmativa a seguir é falsa (F) ou verdadeira (V).\n\n( ) O princípio da transparência determina ao governo divulgar o orçamento público de forma ampla à sociedade.\n( ) O princípio da totalidade determina existência de orçamento único para cada um dos entes federados.\n( ) O princípio de não-afetação da receita de impostos ratifica vinculação da receita de impostos a órgão, fundo ou despesa.\n( ) O princípio da universalidade determina que a LOA de cada ente federado deverá conter todas as receitas e despesas de todos os poderes, órgãos, entidades, fundos e fundações instituídas e mantidas pelo Poder Público.\n\nAs afirmativas são, respectivamente:",
+                        "options": [
+                                    "V-F-F-V",
+                                    "V-V-F-V",
+                                    "F-F-V-F",
+                                    "F-F-F-V",
+                                    "V-V-V-V"
+                        ],
+                        "correct": 1,
+                        "explanation": "A primeira assertiva está correta, tendo em vista que o princípio da transparência se refere à ampla divulgação à sociedade de informações sobre o orçamento. A segunda afirmação também está correta, pois o princípio da totalidade é sinônimo de unidade. O princípio da não afetação é o oposto do afirmado pelo item, pois, em regra, é vedada a vinculação de impostos. O último dispositivo conceitua corretamente o princípio da universalidade."
+            },
+            {
+                        "id": 2,
+                        "source": "FGV/CONSULTOR-CD/2024",
+                        "type": "multiple",
+                        "text": "Ruy Barbosa, ao tratar de matéria orçamentária, jocosamente condenava o que denominou em seu tempo de \"orçamento rabilongo\". A expressão, embora inventada como um neologismo pelo afamado jurista soteropolitano, visava a proscrever uma prática normativa gravemente violadora do:",
+                        "options": [
+                                    "princípio da transparência orçamentária",
+                                    "princípio da não-vinculação de receitas",
+                                    "princípio da exclusividade orçamentária",
+                                    "princípio da estimativa orçamentária",
+                                    "princípio da exequibilidade"
+                        ],
+                        "correct": 2,
+                        "explanation": "Essa expressão se refere à prática de incluir na LOA assuntos estranhos ao seu real propósito, que hoje é vedada pela CF/88, de acordo com o princípio da exclusividade."
+            },
+            {
+                        "id": 3,
+                        "source": "FGV/CM-SP/2024",
+                        "type": "multiple",
+                        "text": "Os princípios orçamentários no Brasil representam diretrizes fundamentais que norteiam a elaboração, a execução e o controle do orçamento público. Esses princípios visam a garantir a transparência, a eficiência e a legalidade na gestão dos recursos públicos. Assinale a afirmativa correta em relação aos Princípios Orçamentários aplicáveis aos Poderes Executivo, Legislativo e Judiciário em todas as esferas governamentais.",
+                        "options": [
+                                    "A Exclusividade exige que o Poder Público realize ou se abstenha de fazer apenas o que for expressamente autorizado pela lei",
+                                    "A Não-Vinculação da Receita de Impostos proíbe que a Lei Orçamentária Anual inclua dispositivos que não estejam relacionados à previsão de receita e à alocação de despesas",
+                                    "A Publicidade exige que as receitas e despesas sejam registradas na Lei Orçamentária Anual pelo seu valor total e sem nenhum tipo de dedução",
+                                    "A Unidade exige que cada ente federado deve possuir um único orçamento, evitando a criação de múltiplos orçamentos paralelos dentro da mesma pessoa política",
+                                    "A Universalidade implica a necessidade de que cada ente federado possua um orçamento único para evitar a existência de múltiplos orçamentos paralelos dentro da mesma pessoa política"
+                        ],
+                        "correct": 3,
+                        "explanation": "Como regra conceitual, a exclusividade se refere à proibição de se incluir assuntos estranhos na LOA; a não afetação veda a vinculação de impostos a despesas específicas; a publicidade se refere à publicação em meios oficiais; a unidade, de fato, exige apenas um orçamento para cada ente; e a universalidade exige que a LOA inclua todas as receitas e despesas."
+            },
+            {
+                        "id": 4,
+                        "source": "CESGRANRIO/IPEA/2024",
+                        "type": "multiple",
+                        "text": "Nos processos de elaboração dos instrumentos orçamentários faz-se mister a identificação dos projetos plurianuais (de grande vulto) no PPA, e também uma série de normas que impõem restrições às chamadas programações genéricas, sem beneficiário definido (em especial no caso de transferências voluntárias). Ou seja, é preciso discriminar o local onde as ações serão promovidas, notadamente os investimentos públicos. Essa orientação para o processo de elaboração dos instrumentos orçamentários está relacionada ao princípio do(a):",
+                        "options": [
+                                    "Orcamento bruto",
+                                    "Realismo orçamentário",
+                                    "Exclusividade",
+                                    "Regionalização",
+                                    "Universalidade"
+                        ],
+                        "correct": 3,
+                        "explanation": "O princípio da regionalização dispõe que a distribuição dos recursos no PPA e na LOA deve se atentar à necessidade de especificar o local onde as ações serão promovidas."
+            },
+            {
+                        "id": 5,
+                        "source": "FGV/TCE-ES/2023",
+                        "type": "multiple",
+                        "text": "Os princípios orçamentários oferecem diretrizes norteadoras básicas para as etapas do processo orçamentário. Assim, a definição de que o projeto de Lei Orçamentária Anual do exercício seguinte deve ser submetido à apreciação do Poder Legislativo até quatro meses antes do encerramento do exercício corrente atende ao princípio da:",
+                        "options": [
+                                    "anualidade",
+                                    "legalidade",
+                                    "transparência",
+                                    "unidade",
+                                    "exclusividade"
+                        ],
+                        "correct": 1,
+                        "explanation": "O princípio da legalidade exige formalização legal, por meio de um processo legislativo, para concretização das leis orçamentárias."
+            },
+            {
+                        "id": 6,
+                        "source": "FGV/TCE-ES/2023",
+                        "type": "multiple",
+                        "text": "Durante um treinamento sobre os princípios e normas que regem o processo orçamentário dos entes públicos, um dos alunos apresentou um questionamento acerca da abrangência do orçamento anual. Segundo ele, se há um balanço do setor público nacional que inclui todos os entes anualmente, deveria haver também um orçamento geral que englobasse os orçamentos de todos os entes federativos. Porém, esse raciocínio do aluno em treinamento não tem base nos princípios orçamentários, e pode ser refutado pelo princípio do(a):",
+                        "options": [
+                                    "anualidade",
+                                    "exclusividade",
+                                    "não vinculação",
+                                    "orçamento bruto",
+                                    "unidade"
+                        ],
+                        "correct": 4,
+                        "explanation": "O princípio da unidade exige apenas um orçamento para cada ente federativo, e não uma LOA que englobe todos eles."
+            },
+            {
+                        "id": 7,
+                        "source": "FGV/TATE/SEFAZ-AM/2022",
+                        "type": "multiple",
+                        "text": "A Lei Complementar n. 101/2000, conhecida como Lei de Responsabilidade Fiscal, estabelece que os Entes da Federação disponibilizarão a qualquer pessoa física ou jurídica o acesso a informações referentes às despesas e às receitas, assim como outros relatórios e demonstrativos. O fato diz respeito à aplicação do seguinte princípio orçamentário:",
+                        "options": [
+                                    "legalidade",
+                                    "publicidade",
+                                    "anualidade",
+                                    "exclusividade",
+                                    "transparência"
+                        ],
+                        "correct": 4,
+                        "explanation": "O princípio da transparência se refere à ampla divulgação à sociedade de informações sobre o orçamento."
+            },
+            {
+                        "id": 8,
+                        "source": "FGV/IMBEL/ANALISTA DE ORÇAMENTO/2021",
+                        "type": "multiple",
+                        "text": "Assinale a opção que indica o princípio orçamentário segundo o qual os valores autorizados para a realização das despesas no exercício deverão ser compatíveis com os valores previstos para a arrecadação das receitas:",
+                        "options": [
+                                    "Princípio da uniformidade",
+                                    "Princípio do orçamento bruto",
+                                    "Princípio da unidade orçamentária",
+                                    "Princípio do equilíbrio orçamentário",
+                                    "Princípio da não vinculação das receitas"
+                        ],
+                        "correct": 3,
+                        "explanation": "O princípio do equilíbrio visa assegurar que as despesas autorizadas não serão superiores à previsão das receitas na lei orçamentária."
+            },
+            {
+                        "id": 9,
+                        "source": "FGV/AUDITOR TCE-AM/2021",
+                        "type": "multiple",
+                        "text": "Estabelecidos e disciplinados por normas constitucionais, infraconstitucionais e pela doutrina, os princípios orçamentários visam a estabelecer diretrizes norteadoras básicas para o processo orçamentário. Nesse contexto, a destinação de recursos para atividades da administração tributária constitui uma exceção ao princípio do(a):",
+                        "options": [
+                                    "especificação",
+                                    "exclusividade",
+                                    "não afetação de receitas",
+                                    "orçamento bruto",
+                                    "unidade"
+                        ],
+                        "correct": 2,
+                        "explanation": "O princípio da não afetação veda a vinculação de impostos a despesas específicas, exceto, entre outros, saúde, educação, transferências constitucionais e atividades da administração tributária."
+            },
+            {
+                        "id": 10,
+                        "source": "IADES/SESDF/ADMINISTRADOR/2018",
+                        "type": "multiple",
+                        "text": "O princípio que estabelece, no aspecto formal, que o orçamento deve ser padronizado nos diversos exercícios em que é executado, possibilitando ser comparado ao longo do tempo, é o da:",
+                        "options": [
+                                    "coerência",
+                                    "uniformidade",
+                                    "universalidade",
+                                    "especificação",
+                                    "discriminação"
+                        ],
+                        "correct": 1,
+                        "explanation": "A padronização entre os sucessivos exercícios, permitindo comparabilidade no mesmo ente federativo, é estabelecida por meio do princípio da uniformidade."
+            },
+            {
+                        "id": 11,
+                        "source": "IADES/PMDF/OFICIAL/2017",
+                        "type": "multiple",
+                        "text": "Princípios orçamentários podem ser entendidos como premissas norteadoras de ação e devem ser observados na elaboração da proposta orçamentária. Nesse sentido, o princípio segundo o qual a lei orçamentária conterá apenas matéria financeira, devendo ser excluídos dela dispositivos estranhos à estimativa da receita e à fixação da despesa, é o princípio do(a):",
+                        "options": [
+                                    "orçamento bruto",
+                                    "exclusividade",
+                                    "não afetação das receitas",
+                                    "especialização",
+                                    "discriminação"
+                        ],
+                        "correct": 1,
+                        "explanation": "O art. 165 da CF/88, § 8º, estabelece que a LOA não conterá conteúdo estranho à previsão da receita e à fixação da despesa, salvo nos casos de créditos suplementares e operações de crédito. Tal dispositivo materializa o princípio da exclusividade."
+            },
+            {
+                        "id": 12,
+                        "source": "IADES/CRF TO/2019",
+                        "type": "multiple",
+                        "text": "A vedação a qualquer tipo de dedução das receitas e despesas registradas na Lei Orçamentária Anual (LOA) decorre do princípio orçamentário da(o):",
+                        "options": [
+                                    "especificação",
+                                    "unidade ou totalidade",
+                                    "exclusividade ou especialização",
+                                    "universalidade ou unidade",
+                                    "orçamento bruto"
+                        ],
+                        "correct": 4,
+                        "explanation": "O princípio do orçamento bruto veda que as despesas ou receitas sejam incluídas no orçamento em seus montantes líquidos, ou seja, todas as receitas e despesas constarão da Lei de Orçamento pelos seus totais, vedadas quaisquer deduções."
+            },
+            {
+                        "id": 13,
+                        "source": "IADES/HEMOCENTRO/2017",
+                        "type": "multiple",
+                        "text": "A divisão do orçamento público em três partes (fiscal, de investimento das empresas estatais e entidades de seguridade social) atende ao princípio orçamentário da(o):",
+                        "options": [
+                                    "universalidade",
+                                    "orçamento bruto",
+                                    "unidade",
+                                    "exclusividade",
+                                    "especificação"
+                        ],
+                        "correct": 2,
+                        "explanation": "O princípio da unidade, ou totalidade, dispõe que haverá apenas uma LOA para cada ente federativo. Assim, ainda que exista três peças orçamentárias (fiscal, investimento e seguridade social), haverá a consolidação de todas elas em uma única lei."
+            },
+            {
+                        "id": 14,
+                        "source": "FGV/TCE-PI/2021",
+                        "type": "multiple",
+                        "text": "Os princípios orçamentários contribuem para a consistência e a regularidade das práticas orçamentárias ao longo do tempo e permitem identificar eventuais desvios de conformidade. Quanto ao princípio da exclusividade, uma característica que pode ser associada a ele é:",
+                        "options": [
+                                    "a lei orçamentária não consignará dotações globais para atender a despesas diversas",
+                                    "a lei orçamentária não pode \\",
+                                    ",\n                    ",
+                                    ",\n                    ",
+                                    ",\n                    "
+                        ],
+                        "correct": 1,
+                        "explanation": "O princípio da exclusividade veda que a LOA contenha, em regra, assuntos estranhos à previsão de receitas e à fixação de despesas. Em outras palavras, pode-se dizer que a LOA não dará outras providências, ou seja, não irá tratar de outros assuntos que não tenham correlação com o seu real propósito."
+            },
+            {
+                        "id": 15,
+                        "source": "FGV/TCE-PI/2021",
+                        "type": "multiple",
+                        "text": "O aperfeiçoamento das práticas orçamentárias ao longo do tempo se refletiu, entre outros aspectos, na consolidação dos princípios orçamentários. O princípio que tem como finalidade evitar a ocorrência de múltiplos orçamentos paralelos em um mesmo ente para um dado período é:",
+                        "options": [
+                                    "anualidade",
+                                    "equilíbrio",
+                                    "exclusividade",
+                                    "legalidade",
+                                    "unidade"
+                        ],
+                        "correct": 4,
+                        "explanation": "O princípio da unidade dispõe que haverá apenas uma LOA para cada ente federativo, a fim de evitar múltiplos orçamentos paralelos. Assim, ainda que exista três peças orçamentárias (fiscal, investimento e seguridade social), haverá a consolidação de todas elas em uma única lei."
+            }
+];
+        let currentQuestion = 0;
+        let score = 0;
+        let wrongAnswers = 0;
+        let answered = [];
+
+        function loadQuestion() {
+            const question = questions[currentQuestion];
+            const quizBody = document.getElementById('quizBody');
+            const letters = ['A', 'B', 'C', 'D', 'E'];
+            const optionsHTML = question.options.map((option, index) => `
+                <div class="option" onclick="selectAnswer(${index})" id="option-${index}">
+                    <div class="option-letter">${letters[index]}</div>
+                    <div class="option-text">${option}</div>
+                </div>
+            `).join('');
+
+            quizBody.innerHTML = `
+                <div class="question-card">
+                    <span class="question-number">Questão ${question.id}</span>
+                    <span class="question-source">${question.source}</span>
+                    <div class="question-text">${question.text}</div>
+                    <div class="options-container">${optionsHTML}</div>
+                    <div class="feedback" id="feedback"></div>
+                </div>
+            `;
+            updateProgress();
+            updateButtons();
+        }
+
+        function selectAnswer(index) {
+            if (answered[currentQuestion]) return;
+            const question = questions[currentQuestion];
+            const feedback = document.getElementById('feedback');
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.classList.add('disabled'));
+
+            const letters = ['A', 'B', 'C', 'D', 'E'];
+            if (index === question.correct) {
+                options[index].classList.add('correct');
+                feedback.className = 'feedback show success';
+                feedback.innerHTML = `✅ Resposta Correta!<div class="feedback-explanation"><strong>Explicação:</strong> ${question.explanation}</div>`;
+                score++;
+            } else {
+                options[index].classList.add('wrong');
+                options[question.correct].classList.add('correct');
+                feedback.className = 'feedback show error';
+                feedback.innerHTML = `❌ Resposta Incorreta! A resposta correta é a alternativa ${letters[question.correct]}.<div class="feedback-explanation"><strong>Explicação:</strong> ${question.explanation}</div>`;
+                wrongAnswers++;
+            }
+            answered[currentQuestion] = true;
+            updateButtons();
+            updateStats();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                showFinalScore();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('questionCounter').textContent = `Questão ${currentQuestion + 1} de ${questions.length}`;
+        }
+
+        function updateStats() {
+            const totalAnswered = score + wrongAnswers;
+            const percentage = totalAnswered > 0 ? Math.round((score / totalAnswered) * 100) : 0;
+            document.getElementById('correctCount').textContent = score;
+            document.getElementById('wrongCount').textContent = wrongAnswers;
+            document.getElementById('percentageDisplay').textContent = percentage + '%';
+        }
+
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentQuestion === 0;
+            document.getElementById('nextBtn').disabled = !answered[currentQuestion];
+            if (currentQuestion === questions.length - 1 && answered[currentQuestion]) {
+                document.getElementById('nextBtn').textContent = 'Ver Resultado →';
+            } else {
+                document.getElementById('nextBtn').textContent = 'Próxima →';
+            }
+        }
+
+        function showFinalScore() {
+            const percentage = Math.round((score / questions.length) * 100);
+            const quizBody = document.getElementById('quizBody');
+            saveToHistory(score, questions.length, percentage);
+            let message = percentage >= 70 ? '🎉 Excelente! Você está preparado!' : percentage >= 50 ? '👍 Bom trabalho! Continue estudando!' : '📚 Continue estudando! Você vai conseguir!';
+            quizBody.innerHTML = `
+                <div class="question-card score-display">
+                    <h2>${message}</h2>
+                    <p>Você acertou <strong>${score}</strong> de <strong>${questions.length}</strong> questões</p>
+                    <div class="score-percentage">${percentage}%</div>
+                    <button class="btn btn-primary" onclick="restartQuiz()">🔄 Refazer Quiz</button>
+                    <button class="btn btn-view-history" onclick="showHistory()">📊 Ver Histórico</button>
+                </div>
+            `;
+            document.querySelector('.quiz-controls').style.display = 'none';
+        }
+
+        function saveToHistory(correct, total, percentage) {
+            const history = getHistory();
+            history.push({date: new Date().toISOString(), correct, total, percentage, timestamp: Date.now()});
+            localStorage.setItem('quizHistoryPrincipios', JSON.stringify(history));
+        }
+
+        function getHistory() {
+            const stored = localStorage.getItem('quizHistoryPrincipios');
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function clearHistory() {
+            if (confirm('Tem certeza que deseja limpar todo o histórico? Esta ação não pode ser desfeita.')) {
+                localStorage.removeItem('quizHistoryPrincipios');
+                showHistory();
+            }
+        }
+
+        function showHistory() {
+            const history = getHistory();
+            const quizBody = document.getElementById('quizBody');
+            if (history.length === 0) {
+                quizBody.innerHTML = `
+                    <div class="history-section"><div class="empty-history">
+                        <div class="empty-history-icon">📊</div>
+                        <h3>Nenhum histórico ainda</h3>
+                        <p>Complete o quiz para começar a acompanhar seu progresso!</p>
+                        <button class="btn btn-primary" onclick="restartQuiz()" style="margin-top: 20px;">Iniciar Quiz</button>
+                    </div></div>
+                `;
+                document.querySelector('.quiz-controls').style.display = 'none';
+                return;
+            }
+            const bestScore = Math.max(...history.map(h => h.percentage));
+            const avgScore = Math.round(history.reduce((sum, h) => sum + h.percentage, 0) / history.length);
+            const sortedHistory = [...history].sort((a, b) => b.timestamp - a.timestamp);
+            const recentHistory = sortedHistory.slice(0, 10);
+            const historyHTML = recentHistory.map((attempt) => {
+                const date = new Date(attempt.date);
+                const dateStr = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const isBest = attempt.percentage === bestScore;
+                return `<div class="history-item ${isBest ? 'best-score' : ''}">
+                    <span class="history-date">${dateStr} às ${timeStr}</span>
+                    <span><span class="history-score">${attempt.percentage}% (${attempt.correct}/${attempt.total})</span>
+                    ${isBest ? '<span class="history-badge">🏆</span>' : ''}</span></div>`;
+            }).join('');
+            const chartData = recentHistory.slice(0, 10).reverse();
+            const chartHTML = chartData.map((attempt) => {
+                const height = attempt.percentage;
+                const isBest = attempt.percentage === bestScore;
+                const date = new Date(attempt.date);
+                const label = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                return `<div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                    <div class="chart-bar ${isBest ? 'best' : ''}" style="height: ${height}%" title="${attempt.percentage}% - ${label}">
+                        <span class="chart-value">${attempt.percentage}%</span>
+                    </div><div class="chart-label">${label}</div></div>`;
+            }).join('');
+            quizBody.innerHTML = `
+                <div class="history-section">
+                    <div class="history-header">
+                        <h2 class="history-title">📊 Seu Desempenho</h2>
+                        <button class="btn-clear" onclick="clearHistory()">🗑️ Limpar Histórico</button>
+                    </div>
+                    <div class="history-stats">
+                        <div class="stat-card best"><div class="stat-card-value">🏆 ${bestScore}%</div><div class="stat-card-label">Melhor Pontuação</div></div>
+                        <div class="stat-card"><div class="stat-card-value">${avgScore}%</div><div class="stat-card-label">Média Geral</div></div>
+                        <div class="stat-card"><div class="stat-card-value">${history.length}</div><div class="stat-card-label">Tentativas</div></div>
+                    </div>
+                    ${chartData.length > 1 ? `<div class="chart-container"><h3 class="chart-title">📈 Evolução (Últimas ${chartData.length} tentativas)</h3><div class="chart">${chartHTML}</div></div>` : ''}
+                    <div class="history-list"><h3 class="history-list-title">📝 Últimas Tentativas</h3>${historyHTML}</div>
+                    <div style="text-align: center; margin-top: 30px;"><button class="btn btn-primary" onclick="restartQuiz()">🔄 Fazer Novo Quiz</button></div>
+                </div>
+            `;
+            document.querySelector('.quiz-controls').style.display = 'none';
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            wrongAnswers = 0;
+            answered = [];
+            document.querySelector('.quiz-controls').style.display = 'flex';
+            updateStats();
+            loadQuestion();
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>

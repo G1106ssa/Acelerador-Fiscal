@@ -1170,40 +1170,6 @@ function renderizarMenu() {
         lista.appendChild(item);
     });
 
-    // ADICIONAR SEÇÃO DE QUIZZES
-    if (filtroAtual === 'todos' || filtroAtual === 'basico') {
-        const quizSection = document.createElement('div');
-        quizSection.className = 'quiz-section';
-        quizSection.innerHTML = `
-            <div class="quiz-section-title">🎯 QUIZZES</div>
-            <div class="quiz-item" onclick="window.open('20questoesExtincao.html', '_blank')">
-                <div class="quiz-icon">📝</div>
-                <div class="quiz-info">
-                    <div class="quiz-name">Decadência e Prescrição</div>
-                    <div class="quiz-meta">20 questões • Dir. Tributário</div>
-                </div>
-                <div class="quiz-arrow">→</div>
-            </div>
-            <div class="quiz-item" onclick="window.open('quiz_ppa_ldo_loa.html', '_blank')">
-                <div class="quiz-icon">📝</div>
-                <div class="quiz-info">
-                    <div class="quiz-name">PPA, LDO e LOA</div>
-                    <div class="quiz-meta">50 questões • Dir. Financeiro</div>
-                </div>
-                <div class="quiz-arrow">→</div>
-            </div>
-            <div class="quiz-item" onclick="window.open('quiz_principios_orcamentarios.html', '_blank')">
-                <div class="quiz-icon">📝</div>
-                <div class="quiz-info">
-                    <div class="quiz-name">Princípios Orçamentários</div>
-                    <div class="quiz-meta">15 questões • Dir. Financeiro</div>
-                </div>
-                <div class="quiz-arrow">→</div>
-            </div>
-        `;
-        lista.appendChild(quizSection);
-    }
-
     // Se a matéria atual estiver visível, mantém ela ativa
     if (materiaAtual) {
         const itemAtivo = document.querySelector(`.materia - item[data - id="${materiaAtual.id}"]`);
@@ -1604,6 +1570,30 @@ function openTopicsModalForSubject(subjectId) {
         `;
     }).join('');
 
+    // ADICIONAR QUIZZES ESPECÍFICOS PARA DIREITO FINANCEIRO
+    let quizzesHTML = '';
+    if (subjectId === 'financeiro') {
+        quizzesHTML = `
+            <div class="quiz-divider">🎯 Quizzes Disponíveis</div>
+            <div class="topic-list-item available" onclick="openQuizModal('PPA, LDO e LOA', 'quiz_ppa_ldo_loa.html')">
+                <div class="topic-icon">📝</div>
+                <div class="topic-info">
+                    <div class="topic-name">PPA, LDO e LOA</div>
+                    <div class="topic-meta">50 questões • Clique para resolver</div>
+                </div>
+                <div class="topic-arrow">→</div>
+            </div>
+            <div class="topic-list-item available" onclick="openQuizModal('Princípios Orçamentários', 'quiz_principios_orcamentarios.html')">
+                <div class="topic-icon">📝</div>
+                <div class="topic-info">
+                    <div class="topic-name">Princípios Orçamentários</div>
+                    <div class="topic-meta">15 questões • Clique para resolver</div>
+                </div>
+                <div class="topic-arrow">→</div>
+            </div>
+        `;
+    }
+
     const modalHTML = `
         <div class="topics-modal-overlay" id="topicsModalOverlay" onclick="closeTopicsModal(event)">
             <div class="topics-modal-container" onclick="event.stopPropagation()">
@@ -1660,16 +1650,18 @@ function closeTopicsModal(event) {
 }
 
 // Função para abrir o quiz em modal
-function openQuizModal(topicName) {
+function openQuizModal(topicName, quizFile) {
     // Fechar modal de tópicos se estiver aberto
     closeTopicsModal();
+    // Se não especificou arquivo, usar o padrão
+    const file = quizFile || '20questoesExtincao.html';
 
     // Criar modal overlay do quiz
     const modalHTML = `
         <div class="quiz-modal-overlay" id="quizModalOverlay" onclick="closeQuizModal(event)">
             <div class="quiz-modal-container" onclick="event.stopPropagation()">
                 <button class="quiz-modal-close" onclick="closeQuizModal()">✕</button>
-                <iframe src="20questoesExtincao.html" class="quiz-iframe"></iframe>
+                <iframe src="${file}" class="quiz-iframe"></iframe>
             </div>
         </div>
     `;
